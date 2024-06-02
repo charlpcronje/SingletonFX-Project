@@ -1,15 +1,10 @@
-Certainly! Here's the `README.md` file for your project, including details about the `SingletonFX` script, usage examples, and the Bash script to create all the necessary files.
-
-**README.md**
-
-```markdown
 # SingletonFX Project
 
 This project demonstrates the use of a singleton pattern for dynamically loading and managing JavaScript modules using the `SingletonFX` script. The project includes several example modules to illustrate different use cases, including class instances, static classes, functions, and modules with multiple exports.
 
 ## Project Structure
 
-```
+```sh
 project-root/
 ├── modules/
 │   ├── user.js
@@ -26,7 +21,7 @@ project-root/
 ## Modules
 
 ### `user.js`
-```javascript
+```js
 // **modules/user.js**
 export class User {
     constructor() {
@@ -40,7 +35,7 @@ export class User {
 ```
 
 ### `product.js`
-```javascript
+```js
 // **modules/product.js**
 export class Product {
     static createProduct(name) {
@@ -50,7 +45,7 @@ export class Product {
 ```
 
 ### `utils.js`
-```javascript
+```js
 // **modules/utils.js**
 export function calculateTotal(price, quantity) {
     console.log(`Total is ${price * quantity}`);
@@ -58,7 +53,7 @@ export function calculateTotal(price, quantity) {
 ```
 
 ### `multipleExports.js`
-```javascript
+```js
 // **modules/multipleExports.js**
 export class Order {
     constructor() {
@@ -78,7 +73,7 @@ export function cancelOrder(orderId) {
 ## Manifest
 
 ### `manifest.js`
-```javascript
+```js
 // **manifest.js**
 export const manifest = {
     user: {
@@ -110,7 +105,7 @@ export const manifest = {
 ## SingletonFX Script
 
 ### `fx.js`
-```javascript
+```js
 // **fx.js**
 import { manifest } from './manifest.js';
 
@@ -288,7 +283,7 @@ export const fx = new FX();
 ## Main Script
 
 ### `main.js`
-```javascript
+```js
 import { fx } from './fx.js';
 
 // Usage for User (instance)
@@ -444,7 +439,7 @@ The `SingletonFX` class initializes by fetching a list of invalidated modules fr
 
 ### Usage Examples
 
-```javascript
+```js
 import { fx } from './fx.js';
 
 // Usage for User (instance)
