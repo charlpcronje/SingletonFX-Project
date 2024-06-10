@@ -5,7 +5,7 @@
  */
 
 // Configuration: Path to the modules directory and manifest file
-$modulesDirectory = '/path/to/your/modules'; // Replace with the actual path
+$modulesDirectory = '/var/www/ai/fx.webally/to/your/modules'; // Replace with the actual path
 $manifestPath = '/path/to/your/manifest.js'; // Replace with the actual path
 $hashFilePath = 'hashes.json'; // Path to save the hashes
 

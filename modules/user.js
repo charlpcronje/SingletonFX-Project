@@ -1,10 +1,14 @@
 // **modules/user.js**
-export class User {
+export default class User {
     constructor() {
         console.log('User instance created');
     }
 
-    addUser(name) {
-        console.log(`User ${name} added.`);
+    addUser() {
+        console.log('User added');
+    }
+
+    getUsers() {
+        console.log('Users retrieved');
     }
 }

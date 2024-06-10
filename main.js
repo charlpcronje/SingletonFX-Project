@@ -1,16 +1,7 @@
-import {
-    fx
-} from './fx.js';
+// File: main.js
 
-// Usage for User (instance)
-fx.user.addUser('John Doe');
+import fx from './fx.js';
 
-// Usage for Product (class)
-fx.product.createProduct('Laptop');
-
-// Usage for Utils (function)
-fx.utils.calculateTotal(100, 2);
-
-// Usage for Multiple Exports (instance and additional functions)
-fx.multipleExports.placeOrder('Book', 3);
-fx.multipleExports.cancelOrder('12345');
+// Accessing the 'user' property triggers dynamic module loading
+fx.user.addUser('Alice'); // Assuming the user module has an addUser method
+console.log(fx.user.getUsers()); // Assuming the user module has a getUsers method
