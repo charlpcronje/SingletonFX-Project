@@ -1,0 +1,6 @@
+{
+    "apiKey": "your-api-key-here",
+    "debug": true,
+    "maxRetries": 3,
+    "timeout": 5000
+}

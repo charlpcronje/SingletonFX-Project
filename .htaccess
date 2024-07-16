@@ -1,2 +1,23 @@
+# .htaccess
 RewriteEngine On
+
+# Existing rules
 RewriteRule ^generateHashes$ generate_hashes.php [L]
+RewriteRule ^env\.json$ convert_env_to_file.php?ext=json [L]
+RewriteRule ^env\.js$ convert_env_to_file.php?ext=js [L]
+RewriteRule ^manifest$ manifest.php [L]
+
+# New API routes
+RewriteRule ^api/users$ tests/api/users.php [L]
+RewriteRule ^api/users/([0-9]+)$ tests/api/users.php?id=$1 [L]
+RewriteRule ^api/posts$ tests/api/posts.php [L]
+RewriteRule ^api/posts/([0-9]+)$ tests/api/posts.php?id=$1 [L]
+RewriteRule ^api/comments$ tests/api/comments.php [L]
+RewriteRule ^api/comments/([0-9]+)$ tests/api/comments.php?id=$1 [L]
+
+# Serve HTML files with the correct Content-Type header
+AddType text/html .html
+
+# Serve other file types with their respective Content-Type headers
+AddType text/css .css
+AddType application/javascript .js

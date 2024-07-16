@@ -1,26 +1,121 @@
-// **manifest.js**
 export const manifest = {
+    help: {
+        path: 'modules/help.js',
+        type: 'instance',
+        mainExport: 'Help'
+    },
     user: {
         path: 'modules/user.js',
         type: 'instance',
-        mainExport: 'User',
+        mainExport: 'User'
     },
-    // product: {
-    //     path: 'modules/product.js',
-    //     type: 'class',
-    //     mainExport: 'Product',
-    // },
-    // utils: {
-    //     path: 'modules/utils.js',
-    //     type: 'function',
-    //     mainExport: 'calculateTotal',
-    // },
-    // multipleExports: {
-    //     path: 'modules/multipleExports.js',
-    //     type: 'instance',
-    //     mainExport: 'Order',
-    //     additionalExports: {
-    //         cancelOrder: 'cancelOrder'
-    //     }
-    // },
+    product: {
+        path: 'modules/product.js',
+        type: 'class',
+        mainExport: 'Product'
+    },
+    utils: {
+        path: 'modules/utils.js',
+        type: 'function',
+        mainExport: 'calculateTotal'
+    },
+    multipleExports: {
+        path: 'modules/multipleExports.js',
+        type: 'instance',
+        mainExport: 'Order',
+        additionalExports: {
+            cancelOrder: 'cancelOrder'
+        }
+    },
+    log: {
+        path: 'modules/log.js',
+        type: 'function',
+        mainExport: 'log'
+    },
+    setDebug: {
+        path: 'modules/log.js',
+        type: 'function',
+        mainExport: 'setDebug'
+    },
+    env: {
+        path: '/env.js',
+        type: 'object',
+        mainExport: 'env'
+    },
+    api: {
+        users: {
+            type: 'api',
+            baseUrl: 'https://fx.webally.co.za/api',
+            methods: ['GET', 'POST', 'PUT', 'DELETE']
+        },
+        posts: {
+            type: 'api',
+            baseUrl: 'https://jsonplaceholder.typicode.com/posts',
+            methods: ['GET', 'POST', 'PUT', 'DELETE']
+        }
+    },
+    styles: {
+        main: {
+            type: 'css',
+            path: '/styles/main.css',
+            scope: 'global',
+            transformations: ['autoprefixer', 'minify']
+        },
+        secondary: {
+            type: 'css',
+            path: '/styles/secondary.css',
+            scope: '#app',
+            transformations: ['autoprefixer', 'minify']
+        }
+    },
+    templates: {
+        user: {
+            card: {
+                type: 'html',
+                path: '/templates/user-card.html'
+            },
+            profile: {
+                type: 'html',
+                path: '/templates/user-profile.html'
+            }
+        },
+        product: {
+            card: {
+                type: 'html',
+                path: '/templates/product-card.html'
+            }
+        }
+    },
+    modules: {
+        user: {
+            type: 'module',
+            path: '/modules/user.js',
+            mainExport: 'User'
+        },
+        counter: {
+            type: 'class',
+            path: '/modules/counter.js',
+            mainExport: 'Counter'
+        }
+    },
+    data: {
+        config: {
+            type: 'json',
+            path: '/data/config.json'
+        },
+        localization: {
+            type: 'json',
+            path: '/data/localization.json'
+        }
+    },
+    raw: {
+        readme: {
+            type: 'raw',
+            path: '/README.md'
+        },
+        changelog: {
+            type: 'raw',
+            path: '/CHANGELOG.md'
+        }
+    }
 };
