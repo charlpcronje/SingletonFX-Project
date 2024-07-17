@@ -1,0 +1,81 @@
+Script execution started.
+Reading manifest file: manifest.json
+Manifest content: {
+    "user": {
+        "path": "modules/user.js",
+        "type": "instance",
+        "mainExport": "User"
+    },
+    "product": {
+        "path": "modules/product.js",
+        "type": "class",
+        "mainExport": "Product"
+    },
+    "utils": {
+        "path": "modules/utils.js",
+        "type": "function",
+        "mainExport": "calculateTotal"
+    },
+    "multipleExports": {
+        "path": "modules/multipleExports.js",
+        "type": "instance",
+        "mainExport": "Order",
+        "additionalExports": {
+            "cancelOrder": "cancelOrder"
+        }
+    },
+    "log": {
+        "path": "modules/log.js",
+        "type": "function",
+        "mainExport": "log"
+    },
+    "setDebug": {
+        "path": "modules/log.js",
+        "type": "function",
+        "mainExport": "setDebug"
+    },
+    "env": {
+        "path": "/env.js",
+        "type": "object",
+        "mainExport": "env"
+    }
+}
+Successfully read and decoded manifest file.
+Generating hashes for files in directory: modules
+Processing file: modules/user.js
+File exists: modules/user.js
+Successfully read file: modules/user.js
+Generated hash for user.js: f939a495d4d1c2fcff49bf34766319c4
+Processing file: modules/product.js
+File exists: modules/product.js
+Successfully read file: modules/product.js
+Generated hash for product.js: 8abd2fb808835e0449d2b085f5435f16
+Processing file: modules/utils.js
+File exists: modules/utils.js
+Successfully read file: modules/utils.js
+Generated hash for utils.js: aa24b9f4d57e8f57cac8084582f8636d
+Processing file: modules/multipleExports.js
+File exists: modules/multipleExports.js
+Successfully read file: modules/multipleExports.js
+Generated hash for multipleExports.js: 5f0ec19d775bc3e68dead5d23edaa4dc
+Processing file: modules/log.js
+File exists: modules/log.js
+Successfully read file: modules/log.js
+Generated hash for log.js: 1c5dc136f93e297f0943cb5d915c39c2
+Processing file: modules/log.js
+File exists: modules/log.js
+Successfully read file: modules/log.js
+Generated hash for log.js: 1c5dc136f93e297f0943cb5d915c39c2
+Processing file: env.js
+File not found: env.js
+Loading previous hashes from file: hashes.json
+Successfully loaded previous hashes.
+Module unchanged: user.js
+Module unchanged: product.js
+Module unchanged: utils.js
+Module unchanged: multipleExports.js
+Module unchanged: log.js
+Saving current hashes to file: hashes.json
+Successfully saved current hashes.
+Invalidated modules: []
+Script execution completed.

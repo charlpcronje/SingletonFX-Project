@@ -1,0 +1,30 @@
+{
+    "root_path": "/var/www/ai/fx.webally.co.za/public/assets/public",
+    "output_path": "/var/www/ai/fx.webally.co.za/public/assets/public/combine.md",
+    "gitignore_path": "",
+    "exclude_folders": [
+        ".history",
+        "docs",
+        "coverage",
+        ".git",
+        "node_modules",
+        "backups"
+    ],
+    "exclude_files": [
+        "package-lock.json",
+        "combine.md",
+        "fx.test.js",
+        "modules/console.js",
+        "generate_hashes.php",
+        "modules/smartRouter.js"
+    ],
+    "file_types": [
+        ".js",
+        ".php",
+        ".env",
+        ".htaccess",
+        ".html",
+        ".json",
+        ".css"
+    ]
+}

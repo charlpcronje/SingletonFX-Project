@@ -1,0 +1,42 @@
+<component name="fx-layout" tag="fx-layout">
+    <template>
+        <div class="layout">
+            <header>
+                <h1>FX Project</h1>
+            </header>
+            <main>
+                <slot></slot>
+            </main>
+            <footer>
+                <p>&copy; 2023 FX Project</p>
+            </footer>
+        </div>
+    </template>
+
+    <style>
+        .layout {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        header,
+        footer {
+            background-color: #f0f0f0;
+            padding: 1rem;
+        }
+
+        main {
+            flex-grow: 1;
+            padding: 2rem;
+        }
+    </style>
+
+    <script>
+        class {
+            onMount() {
+                console.log('Layout component mounted');
+            }
+        }
+    </script>
+</component>

@@ -1,5 +1,6 @@
 // **modules/user.js**
 export default class User {
+
     constructor() {
         console.log('User instance created');
     }

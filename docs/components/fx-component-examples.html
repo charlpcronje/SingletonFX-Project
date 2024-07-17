@@ -1,0 +1,50 @@
+<!-- File: /components/fx-counter.html -->
+<component name="fx-counter" tag="fx-counter">
+    <data name="props" type="json">
+        {
+        "count": 0
+        }
+    </data>
+
+    <template>
+        <div>
+            <h2>Count: {{data.props.count}}</h2>
+            <button onclick="this.increment()">Increment</button>
+        </div>
+    </template>
+
+    <style>
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 3px;
+        }
+    </style>
+
+    <script>
+        new class {
+            increment() {
+                this.data.props.count++;
+                this.render();
+            }
+
+            onCreate() {
+                console.log('Counter component created');
+            }
+
+            onMount() {
+                console.log('Counter component mounted');
+            }
+
+            onUpdate(oldState, newState) {
+                console.log('Counter component updated', oldState, newState);
+            }
+
+            onDestroy() {
+                console.log('Counter component destroyed');
+            }
+        }
+    </script>
+</component>

@@ -1,0 +1,70 @@
+.
+├── CHANGELOG.md
+├── README.md
+├── combined-project-files.md
+├── config.json
+├── convert_env_to_file.php
+├── create_files.sh
+├── data
+│   └── localization.json
+├── fx-visualizer
+│   ├── README.md
+│   ├── package-lock.json
+│   ├── package.json
+│   ├── public
+│   │   ├── favicon.ico
+│   │   ├── index.html
+│   │   ├── logo192.png
+│   │   ├── logo512.png
+│   │   ├── manifest.json
+│   │   └── robots.txt
+│   └── src
+│       ├── App.css
+│       ├── App.js
+│       ├── App.test.js
+│       ├── index.css
+│       ├── index.js
+│       ├── logo.svg
+│       ├── reportWebVitals.js
+│       └── setupTests.js
+├── fx.js
+├── fx.test.js
+├── generate_hashes.php
+├── hashes.json
+├── help.html
+├── index.html
+├── main.js
+├── manifest.js
+├── manifest.json
+├── manifest.php
+├── modules
+│   ├── console.js
+│   ├── counter.js
+│   ├── dynamic-module.js
+│   ├── help.js
+│   ├── lazy-loaded-module.js
+│   ├── log.js
+│   ├── multipleExports.js
+│   ├── product.js
+│   ├── user.js
+│   └── utils.js
+├── script.log
+├── styles
+│   ├── main.css
+│   └── secondary.css
+├── templates
+│   ├── product-card.html
+│   ├── user-card.html
+│   └── user-profile.html
+├── tests
+│   └── api
+│       ├── comments.json
+│       ├── comments.php
+│       ├── json_helper.php
+│       ├── posts.php
+│       ├── users.json
+│       └── users.php
+├── tree.log
+└── user.json
+
+4798 directories, 37503 files

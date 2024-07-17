@@ -1,0 +1,23 @@
+{
+    "1": {
+        "id": "1",
+        "postId": "1",
+        "userId": "2",
+        "content": "Great post! Thanks for sharing.",
+        "createdAt": "2023-07-07T10:30:00Z"
+    },
+    "2": {
+        "id": "2",
+        "postId": "1",
+        "userId": "3",
+        "content": "I found this very informative.",
+        "createdAt": "2023-07-07T11:15:00Z"
+    },
+    "3": {
+        "id": "3",
+        "postId": "2",
+        "userId": "1",
+        "content": "Interesting perspective. I'd like to add...",
+        "createdAt": "2023-07-07T14:45:00Z"
+    }
+}
