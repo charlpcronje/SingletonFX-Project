@@ -1,66 +1,113 @@
-// fx/resources.js
+/**
+ * @file ./fx/resources.js
+ * @description Resources
+ */
 
+/**
+ * @constant {boolean} isBrowser
+ * @description Determines if the current environment is a browser
+ */
+const isBrowser = typeof window !== 'undefined' && typeof window.document !== 'undefined';
+
+/**
+ * @class Resource
+ * @description Base class for all resources
+ */
 export class Resource {
+    /**
+     * @constructor
+     * @param {Object} config - Configuration for the resource
+     * @param {ExecutionContext} context - The execution context
+     */
     constructor(config, context) {
         this.config = config;
         this.context = context;
-        this.loaded = false;
-        this.value = null;
     }
 
-    load() {
-        if (!this.loaded) {
-            this.value = this.context.await(this._doLoad());
-            this.loaded = true;
-        }
-        return this.value;
-    }
-
-    async _doLoad() {
-        throw new Error('_doLoad must be implemented by subclass');
+    /**
+     * @method load
+     * @description Load the resource
+     * @returns {Promise<any>} The loaded resource
+     */
+    async load() {
+        throw new Error('Load method must be implemented by subclass');
     }
 }
 
-export class DataResource extends Resource {
-    async _doLoad() {
-        const response = await fetch(this.config.path);
-        const contentType = response.headers.get('content-type');
-        if (contentType.includes('application/json')) {
-            return response.json();
-        } else if (contentType.includes('application/xml')) {
-            const text = await response.text();
-            return new DOMParser().parseFromString(text, 'text/xml');
-        } else if (contentType.includes('application/x-yaml')) {
-            const text = await response.text();
-            console.log('YAML parsing not implemented');
-            return text;
-        } else {
-            throw new Error(`Unsupported data type: ${contentType}`);
-        }
+/**
+ * @function createResource
+ * @description Factory function to create the appropriate resource based on type and environment
+ * @param {string} type - The type of resource to create
+ * @returns {Promise<typeof Resource>} A promise that resolves to the resource class
+ */
+export async function createResource(type) {
+    let ResourceClass;
+
+    switch (type) {
+        case 'api':
+            ResourceClass = isBrowser 
+                ? (await import('./clientResources/APIResource.js')).default 
+                : (await import('./serverResources/APIResource.js')).default;
+            break;
+        case 'css':
+            ResourceClass = isBrowser 
+                ? (await import('./clientResources/CSSResource.js')).default 
+                : (await import('./serverResources/CSSResource.js')).default;
+            break;
+        case 'html':
+            ResourceClass = isBrowser 
+                ? (await import('./clientResources/HTMLResource.js')).default 
+                : (await import('./serverResources/HTMLResource.js')).default;
+            break;
+        case 'module':
+        case 'class':
+        case 'instance':
+        case 'function':
+            ResourceClass = isBrowser 
+                ? (await import('./clientResources/ModuleResource.js')).default 
+                : (await import('./serverResources/ModuleResource.js')).default;
+            break;
+        case 'json':
+        case 'xml':
+        case 'yml':
+            ResourceClass = isBrowser 
+                ? (await import('./clientResources/DataResource.js')).default 
+                : (await import('./serverResources/DataResource.js')).default;
+            break;
+        case 'raw':
+            ResourceClass = isBrowser 
+                ? (await import('./clientResources/RawResource.js')).default 
+                : (await import('./serverResources/RawResource.js')).default;
+            break;
+        case 'static':
+            ResourceClass = isBrowser 
+                ? (await import('./clientResources/StaticResource.js')).default 
+                : (await import('./serverResources/StaticResource.js')).default;
+            break;
+        case 'markdown':
+            ResourceClass = isBrowser 
+                ? (await import('./clientResources/MarkdownResource.js')).default 
+                : (await import('./serverResources/MarkdownResource.js')).default;
+            break;
+        case 'image':
+            ResourceClass = isBrowser 
+                ? (await import('./clientResources/ImageResource.js')).default 
+                : (await import('./serverResources/ImageResource.js')).default;
+            break;
+        case 'stream':
+            ResourceClass = isBrowser 
+                ? (await import('./clientResources/StreamResource.js')).default 
+                : (await import('./serverResources/StreamResource.js')).default;
+            break;
+        case 'route':
+            ResourceClass = isBrowser 
+                ? (await import('./clientResources/RouteResource.js')).default 
+                : (await import('./serverResources/RouteResource.js')).default;
+            break;
+        default:
+            console.error(`Unknown resource type: ${type}`);
+            return null;
     }
+
+    return ResourceClass;
 }
-
-export class RawResource extends Resource {
-    async _doLoad() {
-        const response = await fetch(this.config.path);
-        return response.text();
-    }
-}
-
-// Dynamically import the correct environment-specific resources
-const envSpecificResources = process.env.NODE_ENV === 'server'
-    ? require('./serverResources')
-    : require('./clientResources');
-
-// Export all resources
-export const {
-    APIResource,
-    CSSResource,
-    HTMLResource,
-    ModuleResource,
-    StaticResource,
-    MarkdownResource,
-    ImageResource,
-    StreamResource,
-    RouteResource
-} = envSpecificResources;

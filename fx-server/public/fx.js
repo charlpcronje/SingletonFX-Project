@@ -2,8 +2,13 @@
  * @file fx.js
  * @description Comprehensive FX class for managing resources with a sync-like API
  */
-
+import dotenv from 'dotenv';
+import { createResource, Resource } from './fx/resources.js';
 import initialManifest from './manifest.js';
+
+dotenv.config();
+
+console.log('Current NODE_ENV:', process.env.NODE_ENV);
 
 /**
  * @class ExecutionContext
@@ -57,15 +62,17 @@ class ExecutionContext {
          * @description Cache for storing results of operations.
          */
         this.cache = new Map();
+
+        console.log('FX instance created');
     }
 
     /**
      * @method log
      * @description Logs a message with an incremental count.
-     * @param {string} message - The message to be logged.
+     * @param {any} message - The message to be logged.
      */
     log(message) {
-        console.log(`${++this.logCount}. ExecutionContext: ${message}`);
+        console.log(`${++this.logCount}`,"ExecutionContext:",{message});
     }
 
     /**
@@ -102,11 +109,11 @@ class ExecutionContext {
 
     /**
      * @method await
-     * @description Waits for a promise to resolve in a sync-like manner.
-     * @param {Promise} promise - The promise to await.
-     * @returns {any} The resolved value of the promise.
+     * @description Waits for a promise to resolve in a sync-like manner
+     * @param {Promise} promise - The promise to await
+     * @returns {any} The resolved value of the promise
      */
-    await (promise) {
+    await(promise) {
         this.log('Await called');
         let result;
         let hasResult = false;
@@ -120,6 +127,7 @@ class ExecutionContext {
             },
             (err) => {
                 this.log('Promise rejected');
+                console.error('Error in ExecutionContext.await:', err);
                 error = err;
                 hasResult = true;
             }
@@ -258,6 +266,36 @@ export class FX {
         this.maxRecursionDepth = 10;
         this.defaultSequence = 0;
         this.cache = new Map();
+        this.createResource = createResource;
+
+        // Check if running in browser environment
+        this.isBrowser = typeof window !== 'undefined' && typeof window.document !== 'undefined';
+
+        console.log(`Running in ${this.isBrowser ? 'browser' : 'server'} environment`);
+
+        // Use ExecutionContext to load environment-specific resources
+        this.context.enqueue(async () => {
+            try {
+                const envSpecificResources = this.isBrowser
+                    ? await import('./fx/clientResources.js')
+                    : await import('./fx/serverResources.js');
+                console.log('Loaded environment-specific resources:', Object.keys(envSpecificResources));
+
+                // Assign the imported resources to class properties
+                Object.assign(this, envSpecificResources);
+
+                console.log('Available resource classes after import:', Object.keys(this).filter(key => key.endsWith('Resource')));
+
+                if (this.isBrowser) {
+                    this.dbPromise = this.initIndexedDB();
+                }
+
+                await this.loadManifest(initialManifest);
+            } catch (error) {
+                console.error('Error loading environment-specific resources:', error);
+            }
+        });
+        
 
         this.loadManifest(initialManifest);
 
@@ -278,9 +316,12 @@ export class FX {
         });
     }
 
-    async initialize(createManifest) {
-        const manifest = createManifest(this);
-        await this.loadManifest(manifest);
+    initialize(createManifest) {
+        return this.context.await(async () => {
+            const manifest = createManifest(this);
+            await this.loadManifest(manifest);
+            console.log('FX initialization complete');
+        });
     }
 
     fx(config = {}) {
@@ -360,36 +401,43 @@ export class FX {
      */
     async loadManifest(manifestObj, prefix = '') {
         console.log("Loading manifest:", manifestObj);
+        if (!this.manifestObj) {
+            this.manifestObj = {};
+        }
         for (const [key, value] of Object.entries(manifestObj)) {
             const fullKey = prefix ? `${prefix}.${key}` : key;
             console.log(`Processing manifest entry: ${fullKey}`);
 
             if (typeof value === 'function') {
-                // This is a loader function from our new manifest structure
                 const loadedValue = await value();
                 await this.loadManifest(loadedValue, fullKey);
             } else if (typeof value === 'object' && value !== null && !value.type) {
                 // Create the nested structure
                 let current = this.manifestObj;
-                fullKey.split('.').forEach((part, index, array) => {
-                    if (!current[part]) {
-                        current[part] = index === array.length - 1 ? value : {};
+                const parts = fullKey.split('.');
+                for (let i = 0; i < parts.length; i++) {
+                    const part = parts[i];
+                    if (i === parts.length - 1) {
+                        current[part] = value;
+                    } else {
+                        current[part] = current[part] || {};
+                        current = current[part];
                     }
-                    current = current[part];
-                });
+                }
                 await this.loadManifest(value, fullKey);
             } else {
                 // Set the value for leaf nodes
                 let current = this.manifestObj;
                 const parts = fullKey.split('.');
-                parts.forEach((part, index) => {
-                    if (index === parts.length - 1) {
+                for (let i = 0; i < parts.length; i++) {
+                    const part = parts[i];
+                    if (i === parts.length - 1) {
                         current[part] = value;
                     } else {
-                        if (!current[part]) current[part] = {};
+                        current[part] = current[part] || {};
                         current = current[part];
                     }
-                });
+                }
                 console.log(`Added to manifestObj: ${fullKey}`);
                 const resource = this.createResource(value, fullKey);
                 if (resource !== null) {
@@ -407,34 +455,28 @@ export class FX {
      * @returns {Resource} The created resource instance
      */
     createResource(config, fullKey) {
-        console.log("Creating resource:", fullKey, config);
-        if (typeof config !== 'object' || config === null || !config.type) {
-            return null; // Return null for non-resource configurations
-        }
-
-        switch (config.type) {
-            case 'api':
-                return new APIResource(config, this);
-            case 'css':
-                return new CSSResource(config, this.context);
-            case 'html':
-                return new HTMLResource(config, this.context);
-            case 'module':
-            case 'class':
-            case 'instance':
-            case 'function':
-                return new ModuleResource(config, this.context);
-            case 'json':
-            case 'xml':
-            case 'yml':
-                return new DataResource(config, this.context);
-            case 'raw':
-                return new RawResource(config, this.context);
-            case 'object':
-                return config; // Handle 'object' type explicitly
-            default:
-                throw new Error(`Unknown resource type: ${config.type}`);
-        }
+        return this.context.await(() => {
+            console.log("Creating resource:", fullKey, config);
+            if (typeof config !== 'object' || config === null || !config.type) {
+                console.warn("Invalid resource configuration");
+                return null;
+            }
+    
+            return createResource(config.type)
+                .then(ResourceClass => {
+                    if (!ResourceClass) {
+                        console.error(`Resource class not found for type: ${config.type}`);
+                        return null;
+                    }
+                    
+                    console.log(`Creating instance of ${ResourceClass.name}`);
+                    return new ResourceClass(config, this.context);
+                })
+                .catch(error => {
+                    console.error(`Error creating resource for ${fullKey}:`, error);
+                    return null;
+                });
+        });
     }
 
     /**
@@ -654,21 +696,29 @@ export class FX {
 
     /**
      * @method initIndexedDB
-     * @description Initializes the IndexedDB database
-     * @returns {Promise<IDBDatabase>} A promise that resolves to the opened database
+     * @description Initializes the IndexedDB database if in browser environment
+     * @returns {Promise<IDBDatabase>|null} A promise that resolves to the opened database or null if not in browser
      */
     initIndexedDB() {
+        if (!this.isBrowser) {
+            console.log("IndexedDB is not available in this environment");
+            return null;
+        }
+
         return new Promise((resolve, reject) => {
             const request = indexedDB.open('FxDB', 1);
 
             request.onerror = (event) => {
                 console.error("IndexedDB error:", event.target.errorCode);
+                reject(event.target.error);
             };
 
             request.onsuccess = (event) => {
                 const db = event.target.result;
                 console.log("IndexedDB opened successfully");
-            }
+                resolve(db);
+            };
+
             request.onupgradeneeded = (event) => {
                 const db = event.target.result;
                 db.createObjectStore('fxStore');

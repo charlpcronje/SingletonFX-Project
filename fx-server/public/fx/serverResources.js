@@ -1,26 +1,84 @@
-// fx/serverResources.js
-import { Resource } from './resources';
-const fs = require('fs').promises;
-const path = require('path');
-const mime = require('mime-types');
-const marked = require('marked');
+/**
+ * @file ./fx/serverResources.js
+ * @description Server-side resources
+ */
+import { Resource } from './resources.js';
+import fs from 'fs';
+import path from 'path';
+import mime from 'mime-types';
+import { marked } from 'marked';
 
+/**
+ * @class APIResource
+ * @extends Resource
+ * @description Resource class for server-side API handling
+ */
 export class APIResource extends Resource {
-    // Server-side API implementation
+    async _doLoad() {
+        // This is a placeholder. In a real implementation, you might set up
+        // route handlers or API endpoints here.
+        console.log(`API Resource loaded: ${this.config.path}`);
+        return { path: this.config.path };
+    }
 }
 
+/**
+ * @class CSSResource
+ * @extends Resource
+ * @description Resource class for server-side CSS handling
+ */
 export class CSSResource extends Resource {
-    // Server-side CSS handling
+    async _doLoad() {
+        try {
+            const css = await fs.readFile(this.config.path, 'utf-8');
+            return css;
+        } catch (error) {
+            console.error(`Error loading CSS: ${this.config.path}`, error);
+            throw error;
+        }
+    }
 }
 
+/**
+ * @class HTMLResource
+ * @extends Resource
+ * @description Resource class for server-side HTML template handling
+ */
 export class HTMLResource extends Resource {
-    // Server-side HTML template handling
+    async _doLoad() {
+        try {
+            const html = await fs.readFile(this.config.path, 'utf-8');
+            return html;
+        } catch (error) {
+            console.error(`Error loading HTML: ${this.config.path}`, error);
+            throw error;
+        }
+    }
 }
 
+
+/**
+ * @class ModuleResource
+ * @extends Resource
+ * @description Resource class for server-side module loading
+ */
 export class ModuleResource extends Resource {
-    // Server-side module loading
+    async _doLoad() {
+        try {
+            const module = await import(this.config.path);
+            return module.default || module;
+        } catch (error) {
+            console.error(`Error loading module: ${this.config.path}`, error);
+            throw error;
+        }
+    }
 }
 
+/**
+ * @class StaticResource
+ * @extends Resource
+ * @description Resource class for server-side static file serving
+ */
 export class StaticResource extends Resource {
     async _doLoad() {
         return {
@@ -45,6 +103,11 @@ export class StaticResource extends Resource {
     }
 }
 
+/**
+ * @class MarkdownResource
+ * @extends Resource
+ * @description Resource class for server-side Markdown file serving
+ */
 export class MarkdownResource extends Resource {
     async _doLoad() {
         return {
@@ -69,6 +132,11 @@ export class MarkdownResource extends Resource {
     }
 }
 
+/**
+ * @class ImageResource
+ * @extends Resource
+ * @description Resource class for server-side image serving
+ */
 export class ImageResource extends Resource {
     async _doLoad() {
         return {
@@ -93,6 +161,11 @@ export class ImageResource extends Resource {
     }
 }
 
+/**
+ * @class StreamResource
+ * @extends Resource
+ * @description Resource class for server-side streaming data
+ */
 export class StreamResource extends Resource {
     async _doLoad() {
         return {
@@ -117,6 +190,11 @@ export class StreamResource extends Resource {
     }
 }
 
+/**
+ * @class RouteResource
+ * @extends Resource
+ * @description Resource class for server-side route handling
+ */
 export class RouteResource extends Resource {
     async _doLoad() {
         const [moduleName, methodName] = this.config.handler.split('.');
