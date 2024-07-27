@@ -1,4 +1,7 @@
-// manifest/routes.js
+/**
+ * @file ./manifest/routes.js
+ * @description Routes
+ */
 export default {
     '/api/env/:key': {
         handler: 'envHandler.getEnv',

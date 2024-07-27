@@ -1,9 +1,6 @@
-// public/modules/log.js
 /**
- * @typedef {Object} LogEntry
- * @property {string} message - The log message.
- * @property {string} caller - The caller function.
- * @property {number} timestamp - The timestamp of the log entry.
+ * @file ./modules/log.js
+ * @description Log Module
  */
 
 /**

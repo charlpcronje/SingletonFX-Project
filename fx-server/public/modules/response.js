@@ -1,4 +1,8 @@
-// modules/response.js
+/**
+ * @file ./modules/response.js
+ * @description Response Module
+ */
+
 export function sendJson(res, statusCode, data) {
     res.writeHead(statusCode, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify(data));

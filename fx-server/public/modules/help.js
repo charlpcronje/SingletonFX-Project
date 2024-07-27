@@ -1,4 +1,7 @@
-// help.js
+/**
+ * @file ./modules/help.js
+ * @description Help Module
+ */
 export class Help {
     constructor(fx) {
         this.fx = fx;

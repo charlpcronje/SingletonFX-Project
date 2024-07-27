@@ -1,5 +1,9 @@
-import fx from './fx.js'; // Import the class
-const fx = new FX(); // Create an instance
+/**
+ * @file ./main.js
+ * @description Main
+ */
+
+import fx from './fx.js'; 
 import createManifest from './manifest.js';
 
 async function initializeApp() {

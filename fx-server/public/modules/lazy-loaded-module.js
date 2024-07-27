@@ -1,4 +1,7 @@
-// /modules/lazy-loaded-module.js
+/**
+ * @file ./modules/lazy-loaded-module.js
+ * @description Lazy Loaded Module
+ */
 export class LazyLoadedModule {
     static getData() {
         return {

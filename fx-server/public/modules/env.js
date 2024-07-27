@@ -1,4 +1,7 @@
-// modules/env.js
+/**
+ * @file ./modules/env.js
+ * @description Environment Variables
+ */
 import fx from '../fx.js';
 import path from 'path';
 

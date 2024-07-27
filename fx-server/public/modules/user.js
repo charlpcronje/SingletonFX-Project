@@ -1,4 +1,8 @@
-// **modules/user.js**
+/**
+ * @file ./modules/user.js
+ * @description User Module
+ */
+
 export default class User {
 
     constructor() {

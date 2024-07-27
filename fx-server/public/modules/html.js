@@ -1,4 +1,7 @@
-// modules/html.js
+/**
+ * @file ./modules/html.js
+ * @description HTML Module
+ */
 import fx from '../fx.js';
 import url from 'url';
 import path from 'path';

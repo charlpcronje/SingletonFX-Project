@@ -1,4 +1,8 @@
-// **modules/multipleExports.js**
+/**
+ * @file ./modules/multipleExports.js
+ * @description Multiple Exports
+ */
+
 export class Order {
     constructor() {
         console.log('Order instance created');

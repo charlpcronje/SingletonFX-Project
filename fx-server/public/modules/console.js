@@ -1,4 +1,9 @@
 /**
+ * @file ./modules/console.js
+ * @description Console
+ */
+
+/**
  * @class Console
  * @description A class for managing the console overlay and log storage.
  */

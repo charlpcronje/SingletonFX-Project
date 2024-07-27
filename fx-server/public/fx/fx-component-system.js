@@ -1,24 +1,46 @@
 /**
- * @file fx-component-system.js
+ * @file ./fx/fx-component-system.js
  * @description Complete implementation of the FX component system
  */
 
 import fx from '../fx.js';
 
 class ComponentRegistry {
+    /**
+     * @constructor
+     * @description Constructor for the component registry
+     */
     constructor() {
         this.components = new Map();
         this.states = new Map();
     }
 
+    /**
+     * @method registerComponent
+     * @description Register a component
+     * @param {string} name - The name of the component
+     * @param {function} componentClass - The component class
+     */
     registerComponent(name, componentClass) {
         this.components.set(name, componentClass);
     }
 
+    /**
+     * @method getComponent
+     * @description Get the component
+     * @param {string} name - The name of the component
+     * @returns {object} The component
+     */
     getComponent(name) {
         return this.components.get(name);
     }
 
+    /**
+     * @method getState
+     * @description Get the state
+     * @param {string} stateId - The state id
+     * @returns {object} The state
+     */
     getState(stateId) {
         if (!this.states.has(stateId)) {
             this.states.set(stateId, {
@@ -29,12 +51,24 @@ class ComponentRegistry {
         return this.states.get(stateId).data;
     }
 
+    /**
+     * @method setState
+     * @description Set the state
+     * @param {string} stateId - The state id
+     * @param {object} newState - The new state
+     */
     setState(stateId, newState) {
         const state = this.getState(stateId);
         Object.assign(state, newState);
         this.notifyStateListeners(stateId);
     }
 
+    /**
+     * @method addStateListener
+     * @description Add a state listener
+     * @param {string} stateId - The state id
+     * @param {object} component - The component
+     */
     addStateListener(stateId, component) {
         const state = this.states.get(stateId) || {
             data: {},
@@ -44,6 +78,12 @@ class ComponentRegistry {
         this.states.set(stateId, state);
     }
 
+    /**
+     * @method removeStateListener
+     * @description Remove a state listener
+     * @param {string} stateId - The state id
+     * @param {object} component - The component
+     */
     removeStateListener(stateId, component) {
         const state = this.states.get(stateId);
         if (state && state.listeners) {
@@ -51,6 +91,11 @@ class ComponentRegistry {
         }
     }
 
+    /**
+     * @method notifyStateListeners
+     * @description Notify the state listeners
+     * @param {string} stateId - The state id
+     */
     notifyStateListeners(stateId) {
         const state = this.states.get(stateId);
         if (state && state.listeners) {
@@ -62,6 +107,10 @@ class ComponentRegistry {
 const registry = new ComponentRegistry();
 
 class FXBaseComponent extends HTMLElement {
+    /**
+     * @constructor
+     * @description Constructor for the base component
+     */
     constructor() {
         super();
         this.attachShadow({
@@ -71,6 +120,10 @@ class FXBaseComponent extends HTMLElement {
         this._stateId = 'global';
     }
 
+    /**
+     * @method connectedCallback
+     * @description Called when the component is connected to the document
+     */
     connectedCallback() {
         this._stateId = this.getAttribute('state') || 'global';
         this.initializeState();
@@ -81,6 +134,10 @@ class FXBaseComponent extends HTMLElement {
         }
     }
 
+    /**
+     * @method disconnectedCallback
+     * @description Called when the component is disconnected from the document
+     */
     disconnectedCallback() {
         registry.removeStateListener(this._stateId, this);
         if (this.onDestroy) {
@@ -88,12 +145,21 @@ class FXBaseComponent extends HTMLElement {
         }
     }
 
+    /**
+     * @method initializeState
+     * @description Initialize the state
+     */
     initializeState() {
         this.state = {
             ...registry.getState(this._stateId)
         };
     }
 
+    /**
+     * @method setState
+     * @description Set the state
+     * @param {object} newState - The new state
+     */
     setState(newState) {
         const oldState = {
             ...this.state
@@ -111,11 +177,21 @@ class FXBaseComponent extends HTMLElement {
 }
 
 class ComponentLoader {
+    /**
+     * @constructor
+     * @description Constructor for the component loader
+     */
     constructor() {
         this.loadedComponents = new Map();
         this.pendingLoads = new Map();
     }
 
+    /**
+     * @method loadComponent
+     * @description Load a component
+     * @param {string} name - The name of the component
+     * @returns {Promise<void>} The promise
+     */
     async loadComponent(name) {
         if (this.loadedComponents.has(name)) {
             return Promise.resolve();
@@ -140,6 +216,12 @@ class ComponentLoader {
         return loadPromise;
     }
 
+    /**
+     * @method registerComponent
+     * @description Register a component
+     * @param {string} name - The name of the component
+     * @param {string} content - The content of the component
+     */
     async registerComponent(name, content) {
         const parser = new DOMParser();
         const doc = parser.parseFromString(content, 'text/html');
@@ -165,6 +247,12 @@ class ComponentLoader {
         this.pendingLoads.delete(name);
     }
 
+    /**
+     * @method processStyles
+     * @description Process the styles
+     * @param {object} componentElement - The component element
+     * @returns {Promise<string>} The promise
+     */
     async processStyles(componentElement) {
         const template = componentElement.querySelector('template');
         const styleTag = componentElement.querySelector('style');
@@ -196,8 +284,22 @@ class ComponentLoader {
         return styles;
     }
 
+    /**
+     * @method createComponentClass
+     * @description Create a component class
+     * @param {string} name - The name of the component
+     * @param {object} dataDefinition - The data definition
+     * @param {object} template - The template
+     * @param {string} script - The script
+     * @param {string} styles - The styles
+     * @returns {function} The component class
+     */
     createComponentClass(name, dataDefinition, template, script, styles) {
         return class extends FXBaseComponent {
+            /**
+             * @constructor
+             * @description Constructor for the component class
+             */
             constructor() {
                 super();
                 this.data = JSON.parse(JSON.stringify(dataDefinition));
@@ -217,6 +319,10 @@ class ComponentLoader {
                 }
             }
 
+            /**
+             * @method render
+             * @description Render the component
+             */
             render() {
                 const styleElement = document.createElement('style');
                 styleElement.textContent = styles;
@@ -247,6 +353,11 @@ fx.component = {
     setState: (stateId, newState) => registry.setState(stateId, newState),
 };
 
+/**
+ * @method observer
+ * @description Observer for the component system
+ * @param {object} mutations - The mutations
+ */
 const observer = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => {
         if (mutation.type === 'childList') {
@@ -259,6 +370,10 @@ const observer = new MutationObserver((mutations) => {
     });
 });
 
+/**
+ * @method observe
+ * @description Observe the document
+ */
 observer.observe(document.body, {
     childList: true,
     subtree: true

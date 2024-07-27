@@ -1,4 +1,8 @@
-// fx-server.js
+/**
+ * @file ./fx-server.js
+ * @description FX Server
+ */
+
 const fs = require('fs');
 const path = require('path');
 const dotenv = require('dotenv');

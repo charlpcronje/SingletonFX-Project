@@ -1,4 +1,8 @@
-// modules/smartRouter.js
+/**
+ * @file ./modules/smartRouter.js
+ * @description Smart Router
+ */
+
 import fx from '../fx.js';
 import path from 'path';
 import fs from 'fs';
