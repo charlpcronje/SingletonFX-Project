@@ -1,10 +1,6 @@
 // manifest.js
 export default function createManifest(fx) {
     return {
-        ai: () => fx.load({
-            type: "object",
-            path: "./manifest/ai.js"
-        }),
         api: () => fx.load({
             type: "object",
             path: "./manifest/api.js"
@@ -12,10 +8,6 @@ export default function createManifest(fx) {
         assets: () => fx.load({
             type: "object",
             path: "./manifest/assets.js"
-        }),
-        comms: () => fx.load({
-            type: "object",
-            path: "./manifest/comms.js"
         }),
         config: () => fx.load({
             type: "object",

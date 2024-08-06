@@ -169,27 +169,39 @@
                 </resource>
                 <resource name="RawResource">
                     <status>Implemented</status>
-                    <file class="RawResource">./fx/clientResources.js</file>
+                    <file class="RawResource">
+                        ./fx/clientResources.js
+                    </file>
                 </resource>
                 <resource name="StaticResource">
                     <status>Implemented (stub)</status>
-                    <file class="StaticResource">./fx/clientResources.js</file>
+                    <file class="StaticResource">
+                        ./fx/clientResources.js
+                    </file>
                 </resource>
                 <resource name="MarkdownResource">
                     <status>Implemented (stub)</status>
-                    <file class="MarkdownResource">./fx/clientResources.js</file>
+                    <file class="MarkdownResource">
+                        ./fx/clientResources.js
+                    </file>
                 </resource>
                 <resource name="ImageResource">
                     <status>Implemented</status>
-                    <file class="ImageResource">./fx/clientResources.js</file>
+                    <file class="ImageResource">
+                        ./fx/clientResources.js
+                    </file>
                 </resource>
                 <resource name="StreamResource">
                     <status>Implemented (stub)</status>
-                    <file class="StreamResource">./fx/clientResources.js</file>
+                    <file class="StreamResource">
+                        ./fx/clientResources.js
+                    </file>
                 </resource>
                 <resource name="RouteResource">
                     <status>Implemented (stub)</status>
-                    <file class="RouteResource">./fx/clientResources.js</file>
+                    <file class="RouteResource">
+                        ./fx/clientResources.js
+                    </file>
                 </resource>
             </client_resources>
 
@@ -197,55 +209,55 @@
                 <resource name="APIResource">
                     <status>Implemented</status>
                     <file class="APIResource">
-                        ./fx/SAPIResource.js
+                        ./fx/serverResources.js
                     </file>
                 </resource>
                 <resource name="CSSResource">
                     <status>Implemented</status>
                     <file class="CSSResource">
-                        ./fx/SCSSResource.js
+                        ./fx/serverResources.js
                     </file>
                 </resource>
                 <resource name="HTMLResource">
                     <status>Implemented</status>
                     <file class="HTMLResource">
-                        ./fx/SHTMLResource.js
+                        ./fx/serverResources.js
                     </file>
                 </resource>
                 <resource name="ModuleResource">
                     <status>Implemented</status>
                     <file class="ModuleResource">
-                        ./fx/SModuleResource.js
+                        ./fx/serverResources.js
                     </file>
                 </resource>
                 <resource name="StaticResource">
                     <status>Implemented</status>
                     <file class="StaticResource">
-                        ./fx/SStaticResource.js
+                        ./fx/serverResources.js
                     </file>
                 </resource>
                 <resource name="MarkdownResource">
                     <status>Implemented</status>
                     <file class="MarkdownResource">
-                        ./fx/SMarkdownResource.js
+                        ./fx/serverResources.js
                     </file>
                 </resource>
                 <resource name="ImageResource">
                     <status>Implemented</status>
                     <file class="ImageResource">
-                        ./fx/SImageResource.js
+                        ./fx/serverResources.js
                     </file>
                 </resource>
                 <resource name="StreamResource">
                     <status>Implemented</status>
                     <file class="StreamResource">
-                        ./fx/SStreamResource.js
+                        ./fx/serverResources.js
                     </file>
                 </resource>
                 <resource name="RouteResource">
                     <status>Implemented</status>
                     <file class="RouteResource">
-                        ./fx/SRouteResource.js
+                        ./fx/serverResources.js
                     </file>
                 </resource>
             </server_resources>
@@ -292,13 +304,18 @@
 
     <features>
         <feature name="Local/Session Storage Integration" status="Must Verify">
-            <description>Easy interaction with local and session storage.</description>
-            <proposed_implementation>Add methods to handle localStorage and sessionStorage access.</proposed_implementation>
+            <description>
+                Easy interaction with local and session storage.
+            </description>
+            <proposed_implementation>
+                Add methods to handle localStorage and sessionStorage access.
+            </proposed_implementation>
         </feature>
 
         <feature name="IndexedDB Integration" status="Must Verify">
             <description>
-                Seamless work with IndexedDB for client-side storage.</description>
+                Seamless work with IndexedDB for client-side storage.
+            </description>
             <proposed_implementation>
                 Create a wrapper for IndexedDB operations.
             </proposed_implementation>
@@ -315,7 +332,8 @@
 
         <feature name="HTML Template Handling" status="Must Verify">
             <description>
-                Loading and using HTML templates.</description>
+                Loading and using HTML templates.
+                </description>
             <proposed_implementation>
                 Enhance the HTMLResource class and integrate it fully with the resource factory.
             </proposed_implementation>
