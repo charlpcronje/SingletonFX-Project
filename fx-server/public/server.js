@@ -10,13 +10,18 @@ import createManifest from './manifest.js';
 
 async function startServer() {
     try {
-        // Initialize fx with the manifest
-        await fx.initialize(createManifest);
+        // Load the manifest
+        const manifest = createManifest(fx);
+        await fx.loadManifest(manifest);
 
         // Create the server
         const server = http.createServer((req, res) => {
             // Apply CORS headers
-            fx.cors.applyHeaders(res);
+            if (fx.cors && typeof fx.cors.applyHeaders === 'function') {
+                fx.cors.applyHeaders(res);
+            } else {
+                console.warn('fx.cors.applyHeaders is not available');
+            }
 
             // Handle preflight requests
             if (req.method === 'OPTIONS') {
@@ -28,11 +33,17 @@ async function startServer() {
             const pathname = url.parse(req.url).pathname;
 
             // Route the request
-            fx.router.route(pathname, req, res).catch(error => {
-                console.error('Error handling request:', error);
+            if (fx.router && typeof fx.router.route === 'function') {
+                fx.router.route(pathname, req, res).catch(error => {
+                    console.error('Error handling request:', error);
+                    res.writeHead(500, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ error: 'Internal Server Error' }));
+                });
+            } else {
+                console.error('fx.router.route is not available');
                 res.writeHead(500, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ error: 'Internal Server Error' }));
-            });
+                res.end(JSON.stringify({ error: 'Router not configured' }));
+            }
         });
 
         // Start the server

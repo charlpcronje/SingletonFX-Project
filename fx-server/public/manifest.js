@@ -1,25 +1,25 @@
 // manifest.js
 export default function createManifest(fx) {
     return {
-        routes: () => fx.load({
+        ai: () => fx.load({
             type: "object",
-            path: "./manifest/routes.js"
+            path: "./manifest/ai.js"
+        }),
+        api: () => fx.load({
+            type: "object",
+            path: "./manifest/api.js"
         }),
         assets: () => fx.load({
             type: "object",
             path: "./manifest/assets.js"
         }),
-        modules: () => fx.load({
+        comms: () => fx.load({
             type: "object",
-            path: "./manifest/modules.js"
+            path: "./manifest/comms.js"
         }),
-        views: () => fx.load({
+        config: () => fx.load({
             type: "object",
-            path: "./manifest/views.js"
-        }),
-        api: () => fx.load({
-            type: "object",
-            path: "./manifest/api.js"
+            path: "./manifest/config.js"
         }),
         data: () => fx.load({
             type: "object",
@@ -29,17 +29,21 @@ export default function createManifest(fx) {
             type: "object",
             path: "./manifest/db.js"
         }),
-        ai: () => fx.load({
+        modules: () => fx.load({
             type: "object",
-            path: "./manifest/ai.js"
+            path: "./manifest/modules.js"
+        }),
+        routes: () => fx.load({
+            type: "object",
+            path: "./manifest/routes.js"
         }),
         tools: () => fx.load({
             type: "object",
             path: "./manifest/tools.js"
         }),
-        comms: () => fx.load({
+        views: () => fx.load({
             type: "object",
-            path: "./manifest/comms.js"
+            path: "./manifest/views.js"
         })
     };
  }

@@ -181,22 +181,17 @@ export class CSSResource extends Resource {
  * @extends Resource
  * @description Resource class for HTML templates
  */
-class HTMLResource extends Resource {
-    /**
-     * @method _doLoad
-     * @description Load an HTML file and provide a query function
-     * @returns {Promise<Function>} A function to query the loaded HTML
-     */
-    async _doLoad() {
-        const response = await fetch(this.config.path);
-        const html = await response.text();
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, 'text/html');
-        return (selector) => {
-            if (!selector) return html;
-            const elements = doc.querySelectorAll(selector);
-            return elements.length === 1 ? elements[0] : Array.from(elements);
-        };
+export default class HTMLResource extends Resource {
+    load() {
+        return this.context.runAsync(async () => {
+            const response = await fetch(this.config.path);
+            const html = await response.text();
+            return (selector) => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                return selector ? doc.querySelector(selector).outerHTML : html;
+            };
+        });
     }
 }
 

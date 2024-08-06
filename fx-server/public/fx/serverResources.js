@@ -42,17 +42,41 @@ export class CSSResource extends Resource {
 /**
  * @class HTMLResource
  * @extends Resource
- * @description Resource class for server-side HTML template handling
+ * @description Resource class for server-side HTML handling
  */
 export class HTMLResource extends Resource {
+    /**
+     * @method _doLoad
+     * @description Load an HTML file and provide a function to query it
+     * @returns {Promise<Function>} A function to query the loaded HTML
+     */
     async _doLoad() {
-        try {
-            const html = await fs.readFile(this.config.path, 'utf-8');
-            return html;
-        } catch (error) {
-            console.error(`Error loading HTML: ${this.config.path}`, error);
-            throw error;
-        }
+        const fs = await import('fs/promises');
+        const path = await import('path');
+        const cheerio = await import('cheerio');
+
+        const html = await fs.readFile(this.config.path, 'utf-8');
+        const $ = cheerio.load(html);
+
+        return (selector) => {
+            if (!selector) return html;
+            return $(selector).toString();
+        };
+    }
+
+    /**
+     * @method serve
+     * @description Serve the HTML or a part of it based on the selector
+     * @param {Object} req - The request object
+     * @param {Object} res - The response object
+     */
+    async serve(req, res) {
+        const queryFunction = await this.load();
+        const selector = req.query.selector;
+        const html = queryFunction(selector);
+
+        res.setHeader('Content-Type', 'text/html');
+        res.end(html);
     }
 }
 

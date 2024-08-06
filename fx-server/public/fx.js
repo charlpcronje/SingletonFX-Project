@@ -2,14 +2,11 @@
  * @file fx.js
  * @description Comprehensive FX class for managing resources with a sync-like API
  */
-import dotenv from 'dotenv';
-import { createResource, Resource } from './fx/resources.js';
+import { ErrorHandler } from './fx/ErrorHandler.js';
+import { Resource, createResourceFactory } from './fx/resources.js';
 import initialManifest from './manifest.js';
 
-dotenv.config();
-
 console.log('Current NODE_ENV:', process.env.NODE_ENV);
-
 /**
  * @class ExecutionContext
  * @description Manages the execution of asynchronous tasks in a synchronous-looking manner,
@@ -29,9 +26,15 @@ class ExecutionContext {
 
         /**
          * @type {boolean}
-         * @description Flag indicating whether tasks are currently being executed.
+         * @description Flag indicating whether a task is currently being executed.
          */
-        this.running = false;
+        this.isExecuting = false;
+
+        /**
+         * @type {Promise<void>}
+         * @description Promise representing the current execution state.
+         */
+        this.executionPromise = Promise.resolve();
 
         /**
          * @type {number}
@@ -41,15 +44,9 @@ class ExecutionContext {
 
         /**
          * @type {number}
-         * @description Maximum number of attempts to prevent infinite loops.
+         * @description Maximum time (in milliseconds) to wait for all tasks to complete.
          */
-        this.maxAttempts = 1000;
-
-        /**
-         * @type {number}
-         * @description Delay in milliseconds between attempts.
-         */
-        this.delayBetweenAttempts = 1;
+        this.maxWaitTime = 5000;
 
         /**
          * @type {Map<string|number, Promise>}
@@ -63,7 +60,7 @@ class ExecutionContext {
          */
         this.cache = new Map();
 
-        console.log('FX instance created');
+        console.log('ExecutionContext instance created');
     }
 
     /**
@@ -72,25 +69,30 @@ class ExecutionContext {
      * @param {any} message - The message to be logged.
      */
     log(message) {
-        console.log(`${++this.logCount}`,"ExecutionContext:",{message});
+        console.log(`${++this.logCount}`, "ExecutionContext:", { message });
     }
 
     /**
-     * @method run
-     * @description Executes tasks in the task queue.
+     * @method waitForAll
+     * @description Waits for all tasks to finish
+     * @param {number} [timeout=5000] - Maximum time to wait in milliseconds
+     * @returns {Promise<void>}
+     * @throws {Error} If the timeout is reached before all tasks complete
      */
-    run() {
-        this.log('Running task queue');
-        if (this.running) return;
-        this.running = true;
+    async waitForAll(timeout = this.maxWaitTime) {
+        console.log(`waitForAll called with timeout: ${timeout}ms`);
+        const startTime = Date.now();
 
-        this.log(`Running task queue length: ${this.taskQueue.length}`);
-        while (this.taskQueue.length > 0) {
-            const task = this.taskQueue.shift();
-            task();
+        while (this.taskQueue.length > 0 || this.isExecuting) {
+            console.log(`Waiting. Tasks: ${this.taskQueue.length}, IsExecuting: ${this.isExecuting}`);
+            if (Date.now() - startTime > timeout) {
+                console.warn(`Timeout reached after ${timeout}ms. Tasks remaining: ${this.taskQueue.length}`);
+                throw new Error(`ExecutionContext.waitForAll timed out after ${timeout}ms`);
+            }
+            await new Promise(resolve => setTimeout(resolve, 10));
         }
-        this.running = false;
-        this.log('Finished running task queue');
+
+        console.log('All tasks completed successfully');
     }
 
     /**
@@ -99,11 +101,34 @@ class ExecutionContext {
      * @param {Function} task - The task to be added to the queue.
      */
     enqueue(task) {
-        this.log('Task enqueued');
+        console.log(`Task enqueued. Queue length: ${this.taskQueue.length + 1}`);
         this.taskQueue.push(task);
-        if (!this.running) {
-            this.log('Starting task queue');
-            this.run();
+        this.executeNext();
+    }
+
+    /**
+     * @method executeNext
+     * @description Executes the next task in the queue.
+     * @private
+     */
+    async executeNext() {
+        if (this.taskQueue.length === 0 || this.isExecuting) {
+            console.log('No tasks to execute or execution in progress');
+            return;
+        }
+
+        this.isExecuting = true;
+        const task = this.taskQueue.shift();
+        console.log(`Executing task. Remaining tasks: ${this.taskQueue.length}`);
+
+        try {
+            await task();
+            console.log('Task completed successfully');
+        } catch (error) {
+            console.error('Task execution error:', error);
+        } finally {
+            this.isExecuting = false;
+            this.executeNext();
         }
     }
 
@@ -111,61 +136,13 @@ class ExecutionContext {
      * @method await
      * @description Waits for a promise to resolve in a sync-like manner
      * @param {Promise} promise - The promise to await
-     * @returns {any} The resolved value of the promise
+     * @returns {Promise<any>} The resolved value of the promise
+     * @throws {Error} If the promise rejects
      */
-    await(promise) {
-        this.log('Await called');
-        let result;
-        let hasResult = false;
-        let error;
-
-        promise.then(
-            (value) => {
-                this.log('Promise resolved');
-                result = value;
-                hasResult = true;
-            },
-            (err) => {
-                this.log('Promise rejected');
-                console.error('Error in ExecutionContext.await:', err);
-                error = err;
-                hasResult = true;
-            }
-        );
-
-        return this.waitForResult(() => hasResult, () => {
-            if (error) {
-                this.log('Throwing error');
-                throw error;
-            }
-            this.log('Returning result');
-            return result;
-        });
-    }
-
-    /**
-     * @method waitForResult
-     * @description Waits for a condition to be true, with a maximum number of attempts.
-     * @param {Function} condition - Function that returns true when the wait should end.
-     * @param {Function} callback - Function to call when the condition is met.
-     * @param {number} [attempt=0] - The current attempt number.
-     * @returns {Promise<any>} The result of the callback function.
-     */
-    waitForResult(condition, callback, attempt = 0) {
-        if (condition()) {
-            return callback();
-        }
-
-        if (attempt >= this.maxAttempts) {
-            throw new Error('Maximum wait attempts exceeded');
-        }
-
-        this.run();
-
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                resolve(this.waitForResult(condition, callback, attempt + 1));
-            }, this.delayBetweenAttempts);
+    await(promiseOrValue) {
+        return Promise.resolve(promiseOrValue).catch(error => {
+            console.error('Error in ExecutionContext.await:', error);
+            throw error;
         });
     }
 
@@ -180,30 +157,19 @@ class ExecutionContext {
      * @param {Function} [config.cb] - Callback function to run after execution.
      * @param {string|number} [config.sqcb] - Sequence to run after this execution.
      * @returns {Promise<any>} The result of the async function.
+     * @throws {Error} If all retry attempts fail
      */
     async runAsync(fn, config) {
-        const {
-            sq,
-            cache,
-            retry,
-            cb,
-            sqcb
-        } = config;
+        const { sq, cache, retry, cb, sqcb } = config;
 
         if (!this.sequences.has(sq)) {
             this.sequences.set(sq, Promise.resolve());
         }
 
         const sequence = this.sequences.get(sq).then(async () => {
-            const cacheKey = JSON.stringify({
-                fn: fn.toString(),
-                config
-            });
+            const cacheKey = JSON.stringify({ fn: fn.toString(), config });
             if (cache && cache !== 1 && this.cache.has(cacheKey)) {
-                const {
-                    value,
-                    timestamp
-                } = this.cache.get(cacheKey);
+                const { value, timestamp } = this.cache.get(cacheKey);
                 if (cache === 0 || Date.now() - timestamp < cache) {
                     return value;
                 }
@@ -215,25 +181,23 @@ class ExecutionContext {
                     result = await fn();
                     break;
                 } catch (error) {
-                    if (attempt === (retry || 0)) throw error;
-                    this.log(`Retry attempt ${attempt + 1} for sequence ${sq}`);
+                    if (attempt === (retry || 0)) {
+                        console.error(`All retry attempts failed for sequence ${sq}:`, error);
+                        throw error;
+                    }
+                    console.log(`Retry attempt ${attempt + 1} for sequence ${sq}`);
                 }
             }
 
             if (cache && cache !== 1) {
-                this.cache.set(cacheKey, {
-                    value: result,
-                    timestamp: Date.now()
-                });
+                this.cache.set(cacheKey, { value: result, timestamp: Date.now() });
             }
 
             if (cb) cb(result);
 
             if (sqcb !== undefined) {
-                this.sequences.get(sqcb) ?.then(() => {
-                    this.runAsync(() => {}, {
-                        sq: sqcb
-                    });
+                this.sequences.get(sqcb)?.then(() => {
+                    this.runAsync(() => {}, { sq: sqcb });
                 });
             }
 
@@ -245,174 +209,235 @@ class ExecutionContext {
     }
 }
 
-
-
 /**
  * @class FX
  * @description Core class for managing resources with a composition-based approach
  */
-export class FX {
+class FX {
+    /**
+     * @type {FX}
+     * @private
+     * @description The singleton instance of FX
+     */
+    static #instance = null;
+
     /**
      * @constructor
      * @description Initializes the FX instance with all necessary components
+     * @throws {Error} If attempting to create a new instance when one already exists
      */
     constructor() {
-        this.manifestObj = {};
-        this.resources = new Map();
-        this.dynamicProperties = new Map();
-        this.context = new ExecutionContext();
-        this.dbPromise = this.initIndexedDB();
-        this.proxyCache = new WeakMap();
-        this.maxRecursionDepth = 10;
-        this.defaultSequence = 0;
-        this.cache = new Map();
-        this.createResource = createResource;
+        if (FX.#instance) {
+            throw new Error("FX is a singleton. Use FX.getInstance() instead of new FX().");
+        }
 
-        // Check if running in browser environment
+        /**
+         * @type {boolean}
+         * @description Flag to enable debug mode
+         */
+        this.debug = false;
+
+        /**
+         * @type {Object}
+         * @description Object to store the manifest
+         */
+        this.manifestObj = {};
+
+        /**
+         * @type {Object}
+         * @description Object to store resource instances
+         */
+        this.resources = {};
+
+        /**
+         * @type {Object}
+         * @description Object to store resource load promises
+         */
+        this.resourceLoadPromises = {};
+
+        /**
+         * @type {Map<string, any>}
+         * @description Map to store dynamic properties
+         */
+        this.dynamicProperties = new Map();
+
+        /**
+         * @type {ErrorHandler}
+         * @description Instance of ErrorHandler for handling errors
+         */
+        this.errorHandler = new ErrorHandler();
+
+        /**
+         * @type {ExecutionContext}
+         * @description Instance of ExecutionContext for managing asynchronous tasks
+         */
+        this.context = new ExecutionContext();
+
+        /**
+         * @type {Promise<IDBDatabase>|null}
+         * @description Promise that resolves to the IndexedDB instance, or null if not in a browser environment
+         */
+        this.dbPromise = this.initIndexedDB();
+
+        /**
+         * @type {WeakMap}
+         * @description WeakMap to store proxy instances
+         */
+        this.proxyCache = new WeakMap();
+
+        /**
+         * @type {number}
+         * @description Maximum recursion depth for nested property access
+         */
+        this.maxRecursionDepth = 10;
+
+        /**
+         * @type {number}
+         * @description Default sequence number for async operations
+         */
+        this.defaultSequence = 0;
+
+        /**
+         * @type {Map<string, any>}
+         * @description Map to store cached values
+         */
+        this.cache = new Map();
+
+        /**
+         * @type {Function}
+         * @description Factory function for creating resource instances
+         */
+        this.resourceFactory = createResourceFactory();
+        
+        
+         /**
+         * @type {boolean}
+         * @description True if FX is running in a browser
+         */
         this.isBrowser = typeof window !== 'undefined' && typeof window.document !== 'undefined';
 
-        console.log(`Running in ${this.isBrowser ? 'browser' : 'server'} environment`);
+        if (this.debug) console.log(`Running in ${this.isBrowser ? 'browser' : 'server'} environment`);
 
-        // Use ExecutionContext to load environment-specific resources
+
+
+        // Enqueue the initial manifest loading task
         this.context.enqueue(async () => {
             try {
-                const envSpecificResources = this.isBrowser
-                    ? await import('./fx/clientResources.js')
-                    : await import('./fx/serverResources.js');
-                console.log('Loaded environment-specific resources:', Object.keys(envSpecificResources));
-
-                // Assign the imported resources to class properties
-                Object.assign(this, envSpecificResources);
-
-                console.log('Available resource classes after import:', Object.keys(this).filter(key => key.endsWith('Resource')));
-
-                if (this.isBrowser) {
-                    this.dbPromise = this.initIndexedDB();
-                }
-
+                if (this.debug) console.log('Executing initial FX task: Loading manifest');
                 await this.loadManifest(initialManifest);
+                if (this.debug) console.log('Initial FX task completed: Manifest loaded');
             } catch (error) {
-                console.error('Error loading environment-specific resources:', error);
+                console.error('Error loading initial manifest:', error);
             }
         });
-        
 
-        this.loadManifest(initialManifest);
+        const coreProperties = ['errorHandler', 'context', 'manifestObj', 'resources', 'dynamicProperties', 'dbPromise', 'resourceFactory'];
+        const coreMethods = ['loadManifest', 'createResource', 'handleGet', 'handleSet', 'initIndexedDB', 'manifest', 'load', 'set', 'get', 'data', 'fx'];
+
+        if (this.debug) console.log('FX instance created');
 
         return new Proxy(this, {
             get: (target, prop, receiver) => {
-                if (prop === 'fx') {
-                    return this.fx.bind(this);
+                if (coreProperties.includes(prop) || coreMethods.includes(prop) || typeof target[prop] === 'function') {
+                    return Reflect.get(target, prop, receiver);
                 }
                 return this.handleGet(target, prop, [], receiver);
             },
-            set: (target, prop, value) => this.handleSet(target, prop, value, []),
-            apply: (target, thisArg, args) => {
-                if (typeof target === 'function') {
-                    return returnReflect.apply(target, thisArg, argumentsList); // Call the original function
-                }
-                return this.fx(...args);
-            }
-        });
-    }
-
-    initialize(createManifest) {
-        return this.context.await(async () => {
-            const manifest = createManifest(this);
-            await this.loadManifest(manifest);
-            console.log('FX initialization complete');
-        });
-    }
-
-    fx(config = {}) {
-        const processedConfig = this.processConfig(config);
-        return new Proxy(this, {
-            get: (target, prop) => {
-                if (typeof target[prop] === 'function') {
-                    return (...args) => this.context.runAsync(() => target[prop](...args), processedConfig);
-                }
-                if (typeof target[prop] === 'object' && target[prop] !== null) {
-                    return new Proxy(target[prop], {
-                        get: (t, p) => {
-                            if (typeof t[p] === 'function') {
-                                return (...a) => this.context.runAsync(() => t[p](...a), processedConfig);
-                            }
-                            return t[p];
-                        }
-                    });
-                }
-                return target[prop];
-            },
             set: (target, prop, value) => {
-                target[prop] = value;
-                return true;
+                if (coreProperties.includes(prop)) {
+                    return Reflect.set(target, prop, value);
+                }
+                return this.handleSet(target, prop, value, []);
             }
         });
     }
 
-    processConfig(config) {
-        if (typeof config !== 'object' || config === null) {
-            config = {
-                sq: config
-            };
+    /**
+     * @method getInstance
+     * @static
+     * @description Get the singleton instance of FX
+     * @returns {FX} The singleton FX instance
+     */
+    static getInstance() {
+        if (!FX.#instance) {
+            console.log('Creating new FX instance');
+            FX.#instance = new FX();
+        } else {
+            console.log('Returning existing FX instance');
         }
-        return {
-            sq: config.sq ?? this.defaultSequence,
-            log: config.log ?? 0,
-            retry: config.retry ?? 0,
-            cb: config.cb,
-            sqcb: config.sqcb,
-            cache: config.cache ?? 1,
-            ...config
-        };
+        return FX.#instance;
     }
 
-    fx(config = {}) {
-        const processedConfig = this.processConfig(config);
-        return new Proxy(this, {
-            get: (target, prop) => {
-                if (typeof target[prop] === 'function') {
-                    return (...args) => this.context.runAsync(() => target[prop](...args), processedConfig);
-                }
-                if (typeof target[prop] === 'object' && target[prop] !== null) {
-                    return new Proxy(target[prop], {
-                        get: (t, p) => {
-                            if (typeof t[p] === 'function') {
-                                return (...a) => this.context.runAsync(() => t[p](...a), processedConfig);
-                            }
-                            return t[p];
-                        }
-                    });
-                }
-                return target[prop];
-            },
-            set: (target, prop, value) => {
-                target[prop] = value;
-                return true;
+    /**
+     * @method getResource
+     * @param {string} [type] - The type of resource to invalidate (optional)
+     * @param {Object} config - Configuration for the operation
+     * @returns 
+     */
+    getResource(type, config) {
+        return this.context.runAsync(async () => {
+            const ResourceClass = await this.resourceFactory(type);
+            if (!ResourceClass) {
+                throw new Error(`Unknown resource type: ${type}`);
             }
+            return new ResourceClass(config, this.context);
         });
     }
-    
+
+    /**
+     * @method cacheResources
+     * @description Serialize and cache the current state of resources
+     */
+    cacheResources() {
+        const cache = JSON.stringify(this.resources);
+        localStorage.setItem('fx_resources_cache', cache);
+        if (this.debug) console.log('Resources cached');
+    }
+
+    /**
+     * @method invalidateResourceCache
+     * @description Invalidate the cache for a specific resource or all resources
+     * @param {string} [type] - The type of resource to invalidate (optional)
+     */
+    invalidateResourceCache(type) {
+        if (type) {
+            delete this.resources[type];
+        } else {
+            this.resources = {};
+        }
+        if (this.debug) console.log(`Cache invalidated${type ? ` for ${type}` : ''}`);
+    }
+
+    /**
+     * @method loadCachedResources
+     * @description Load resources from cache
+     */
+    loadCachedResources() {
+        const cache = localStorage.getItem('fx_resources_cache');
+        if (cache) {
+            this.resources = JSON.parse(cache);
+            if (this.debug) console.log('Resources loaded from cache');
+        }
+    }
+
     /**
      * @method loadManifest
-     * @description Load the manifest and create resource instances
+     * @description Load the manifest and create resource instances using ExecutionContext
      * @param {Object} manifestObj - The manifest object
      * @param {string} [prefix=''] - The current prefix for nested objects
+     * @returns {Promise<void>}
      */
     async loadManifest(manifestObj, prefix = '') {
-        console.log("Loading manifest:", manifestObj);
-        if (!this.manifestObj) {
-            this.manifestObj = {};
-        }
-        for (const [key, value] of Object.entries(manifestObj)) {
+        if (this.debug) console.log('FX.loadManifest called');
+        
+        const loadEntry = async (key, value) => {
             const fullKey = prefix ? `${prefix}.${key}` : key;
-            console.log(`Processing manifest entry: ${fullKey}`);
+            if (this.debug) console.log(`Processing manifest entry: ${fullKey}`);
 
             if (typeof value === 'function') {
-                const loadedValue = await value();
+                const loadedValue = await this.context.await(value());
                 await this.loadManifest(loadedValue, fullKey);
             } else if (typeof value === 'object' && value !== null && !value.type) {
-                // Create the nested structure
                 let current = this.manifestObj;
                 const parts = fullKey.split('.');
                 for (let i = 0; i < parts.length; i++) {
@@ -426,7 +451,6 @@ export class FX {
                 }
                 await this.loadManifest(value, fullKey);
             } else {
-                // Set the value for leaf nodes
                 let current = this.manifestObj;
                 const parts = fullKey.split('.');
                 for (let i = 0; i < parts.length; i++) {
@@ -438,59 +462,50 @@ export class FX {
                         current = current[part];
                     }
                 }
-                console.log(`Added to manifestObj: ${fullKey}`);
-                const resource = this.createResource(value, fullKey);
+                if (this.debug) console.log(`Added to manifestObj: ${fullKey}`);
+                const resource = await this.createResource(value, fullKey);
                 if (resource !== null) {
-                    this.resources.set(fullKey, resource);
+                    this.resources[fullKey] = resource;
                 }
             }
-        }
+        };
+
+        const entries = Object.entries(manifestObj);
+        const loadPromises = entries.map(([key, value]) => 
+            this.context.runAsync(() => loadEntry(key, value), { sq: `load_manifest_${key}` })
+        );
+
+        await this.context.await(Promise.all(loadPromises));
+
+        if (this.debug) console.log('FX.loadManifest completed');
     }
 
+
     /**
-     * @method createResource
-     * @description Create a resource instance based on its type
-     * @param {Object} config - The resource configuration
-     * @param {String} fullKey - The full resource key
-     * @returns {Resource} The created resource instance
+     * @method waitForAll
+     * @description Waits for all pending tasks to complete
+     * @param {number} [timeout=5000] - Maximum time to wait in milliseconds
+     * @returns {Promise<void>}
      */
-    createResource(config, fullKey) {
-        return this.context.await(() => {
-            console.log("Creating resource:", fullKey, config);
-            if (typeof config !== 'object' || config === null || !config.type) {
-                console.warn("Invalid resource configuration");
-                return null;
-            }
-    
-            return createResource(config.type)
-                .then(ResourceClass => {
-                    if (!ResourceClass) {
-                        console.error(`Resource class not found for type: ${config.type}`);
-                        return null;
-                    }
-                    
-                    console.log(`Creating instance of ${ResourceClass.name}`);
-                    return new ResourceClass(config, this.context);
-                })
-                .catch(error => {
-                    console.error(`Error creating resource for ${fullKey}:`, error);
-                    return null;
-                });
-        });
+    async waitForAll(timeout = 5000) {
+        if (this.debug) console.log(`FX.waitForAll called with timeout: ${timeout}ms`);
+        await this.context.waitForAll(timeout);
+        if (this.debug) console.log('FX.waitForAll completed');
     }
 
-    /**
+   /**
      * @method handleGet
      * @description Handles property access on the FX proxy
      * @param {Object} target - The target object
      * @param {string} prop - The property being accessed
      * @param {Array<string>} path - The current property path
-     * @param {number} [depth=0] - The current recursion depth
+     * @param {Object} receiver - The proxy or object the property is being accessed on
+     * @param {Object} config - Configuration for the operation
      * @returns {*} The requested property or a new proxy for chaining
      */
     handleGet(target, prop, path, receiver, config = {}) {
         const fullPath = [...path, prop].join('.');
-        console.log(`Accessing: ${fullPath}, Depth: ${path.length}`);
+        if (this.debug) console.log(`Accessing: ${fullPath}, Depth: ${path.length}`);
 
         if (path.length > this.maxRecursionDepth) {
             console.warn(`Maximum recursion depth reached for path: ${fullPath}. Stopping recursion.`);
@@ -509,8 +524,8 @@ export class FX {
         }
 
         // Check for resources
-        if (this.resources.has(fullPath)) {
-            const resource = this.resources.get(fullPath);
+        if (fullPath in this.resources) {
+            const resource = this.resources[fullPath];
             if (typeof resource === 'function') {
                 return (...args) => this.context.runAsync(() => resource(...args), config);
             }
@@ -530,13 +545,13 @@ export class FX {
 
         if (value && typeof value === 'object' && value.type) {
             const resource = this.createResource(value, fullPath);
-            this.resources.set(fullPath, resource);
+            this.resources[fullPath] = resource;
             if (typeof resource === 'function') {
                 return (...args) => this.context.runAsync(() => resource(...args), config);
             }
             return resource;
         } else if (typeof value === 'object' && value !== null) {
-            return new Proxy({}, {
+            return new Proxy(value, {
                 get: (nestedTarget, nestedProp) => this.handleGet(nestedTarget, nestedProp, [...path, prop], receiver, config),
                 set: (nestedTarget, nestedProp, nestedValue) => this.handleSet(nestedTarget, nestedProp, nestedValue, [...path, prop])
             });
@@ -545,19 +560,134 @@ export class FX {
         return value;
     }
 
+    /**
+     * @method handleSet
+     * @description Handles property setting on the FX proxy
+     * @param {Object} target - The target object
+     * @param {string} prop - The property being set
+     * @param {*} value - The value being set
+     * @param {Array<string>} path - The current property path
+     * @returns {boolean} True if the set was successful
+     */
+    handleSet(target, prop, value, path) {
+        const fullPath = [...path, prop].join('.');
+        if (this.debug) console.log(`Setting: ${fullPath}`, value);
+
+        // Handle special properties
+        if (fullPath.startsWith('db.')) {
+            return this.setToIndexedDB('fxStore', fullPath.slice(3), value);
+        }
+        if (fullPath.startsWith('store.')) {
+            localStorage.setItem(fullPath.slice(6), JSON.stringify(value));
+            return true;
+        }
+        if (fullPath.startsWith('session.')) {
+            sessionStorage.setItem(fullPath.slice(8), JSON.stringify(value));
+            return true;
+        }
+
+        // Set dynamic property
+        this.dynamicProperties.set(fullPath, value);
+        return true;
+    }   
+
+    /**
+     * @method fx
+     * @description Creates a new proxy with the specified configuration
+     * @param {Object} config - Configuration for the proxy
+     * @returns {Proxy} A new proxy with the specified configuration
+     */
+    fx(config = {}) {
+        if (this.debug) console.log('FX.fx method called with config:', config);
+        const processedConfig = this.processConfig(config);
+        
+        const handler = {
+            get: (target, prop) => {
+                if (prop === 'set') {
+                    return (key, value) => this.set(key, value);
+                }
+                if (prop in this) {
+                    const value = this[prop];
+                    if (typeof value === 'function') {
+                        return (...args) => this.context.runAsync(() => value.apply(this, args), processedConfig);
+                    }
+                    return value;
+                }
+                return this.handleGet(this, prop, [], this, processedConfig);
+            },
+            set: (target, prop, value) => {
+                return this.handleSet(this, prop, value, []);
+            }
+        };
+
+        return new Proxy({}, handler);
+    }
+
+    /**
+     * @method processConfig
+     * @description Processes the configuration object for the fx method
+     * @param {Object|string|number} config - The configuration object or sequence identifier
+     * @returns {Object} The processed configuration object
+     */
+    processConfig(config) {
+        if (typeof config !== 'object' || config === null) {
+            config = { sq: config };
+        }
+        return {
+            sq: config.sq ?? this.defaultSequence,
+            log: config.log ?? 0,
+            retry: config.retry ?? 0,
+            cb: config.cb,
+            sqcb: config.sqcb,
+            cache: config.cache ?? 1,
+            ...config
+        };
+    }
+
+    /**
+     * @method createResource
+     * @description Create a resource instance based on its type
+     * @param {Object} config - The resource configuration
+     * @param {String} fullKey - The full resource key
+     * @returns {Promise<Resource>} A promise that resolves to the created resource instance
+     */
+    createResource(config, fullKey) {
+        return this.context.await(async () => {
+            if (this.debug) console.log("Creating resource:", fullKey, config);
+            if (typeof config !== 'object' || config === null || !config.type) {
+                console.warn("Invalid resource configuration");
+                return null;
+            }
+
+            try {
+                const ResourceClass = await this.resourceFactory(config.type);
+                if (!ResourceClass) {
+                    console.error(`Resource class not found for type: ${config.type}`);
+                    return null;
+                }
+
+                if (this.debug) console.log(`Creating instance of ${ResourceClass.name}`);
+                return new ResourceClass(config, this.context);
+            } catch (error) {
+                console.error(`Error creating resource for ${fullKey}:`, error);
+                return null;
+            }
+        });
+    }
 
     /**
      * @method getNestedValue
      * @description Safely retrieves a nested value from an object
      * @param {Object} obj - The object to retrieve from
      * @param {string} path - The path to the desired value
+     * @param {boolean} [debug=false] - Whether to log debug information
      * @returns {*} The value at the specified path, or undefined if not found
      */
     getNestedValue(obj, path) {
-        console.log(`Getting nested value for path: ${path}`);
+        if (this.debug) console.log(`Getting nested value for path: ${path}`);
         return path.split('.').reduce((current, key) => {
-            console.log(`Accessing key: ${key}, Current value:`, current);
-            return current && current.hasOwnProperty(key) ? current[key] : undefined;
+            if (this.debug)  console.log(`Accessing key: ${key}, Current value:`, current);
+            return current && Object.prototype.hasOwnProperty.call(current, key) ? current[key] : undefined;
         }, obj);
     }
 
@@ -581,7 +711,7 @@ export class FX {
      */
     handleSet(target, prop, value, path) {
         const fullPath = [...path, prop].join('.');
-        console.log("Setting:", fullPath, value);
+        if (this.debug) console.log("Setting:", fullPath, value);
 
         // Handle special properties
         if (fullPath.startsWith('db.')) {
@@ -701,7 +831,7 @@ export class FX {
      */
     initIndexedDB() {
         if (!this.isBrowser) {
-            console.log("IndexedDB is not available in this environment");
+            if (this.debug) console.log("IndexedDB is not available in this environment");
             return null;
         }
 
@@ -715,7 +845,7 @@ export class FX {
 
             request.onsuccess = (event) => {
                 const db = event.target.result;
-                console.log("IndexedDB opened successfully");
+                if (this.debug) console.log("IndexedDB opened successfully");
                 resolve(db);
             };
 
@@ -738,7 +868,7 @@ export class FX {
             defer: config.defer !== false
         };
         if (!config.defer) {
-            this.resources.set(path, this.createResource(config));
+            this.resources[path] = this.createResource(config);
         }
     }
 
@@ -764,7 +894,7 @@ export class FX {
      * @param {string} path - The path for the manifest entry
      */
     async loadSubManifest(path) {
-        console.log(`Loading sub-manifest from ${path}`);
+        if (this.debug) console.log(`Loading sub-manifest from ${path}`);
         const module = await import(path);
         return module.default || module;
     }
@@ -808,5 +938,6 @@ export class FX {
 }
 
 // Create and export the FX instance
-const fx = new FX();
+const fx = FX.getInstance();
+export { fx, FX };
 export default fx;

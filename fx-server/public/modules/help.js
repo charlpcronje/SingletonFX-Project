@@ -35,3 +35,6 @@ export class Help {
         }
     }
 }
+
+const help = new Help(fx);
+export { help };
