@@ -1,0 +1,580 @@
+<prompt>
+    <background>
+        The FX framework is a JavaScript library designed to provide a seamless, synchronous-like interface for asynchronous operations. It aims to work in both browser and Node.js environments, focusing on creating a developer-friendly API for complex operations. Key features include dynamic resource loading, proxy-based property access, and lazy loading of modules.
+    </background>
+
+    <current_state>
+        <completed_features>
+            <feature name="Singleton Pattern">
+                <description>
+                    The FX class uses a static private instance and a getInstance method.
+                </description>
+                <file>fx.js</file>
+                <code_snippet>
+                    class FX {
+                        static #instance = null;
+                        static getInstance() {
+                            if (!FX.#instance) {
+                                FX.#instance = new FX();
+                            }
+                            return FX.#instance;
+                        }
+                    }
+                </code_snippet>
+            </feature>
+
+            <feature name="Basic Proxy-based Property Access">
+                <description>
+                    The FX instance is wrapped in a Proxy to handle dynamic property access.
+                </description>
+                <file>fx.js</file>
+                <code_snippet>
+                    return new Proxy(this, {
+                        get: (target, prop, receiver) => this.handleGet(target, prop, [], receiver)
+                    });
+                </code_snippet>
+            </feature>
+
+            <feature name="Resource Factory">
+                <description>
+                    A factory function that creates different types of resources based on the environment.
+                </description>
+                <file>resources.js</file>
+                <code_snippet>
+                    export function createResourceFactory() {
+                        return async function resourceFactory(type) {
+                            let ResourceClass;
+                            switch (type) {
+                                case 'api':
+                                    ResourceClass = isBrowser 
+                                        ? (await import('./clientResources/APIResource.js')).default 
+                                        : (await import('./serverResources/APIResource.js')).default;
+                                    break;
+                                // ... other resource types ...
+                            }
+                            return ResourceClass;
+                        };
+                    }
+                </code_snippet>
+            </feature>
+
+            <feature name="ExecutionContext for Asynchronous Operations">
+                <description>
+                    Manages the execution of asynchronous tasks in a synchronous-looking manner.
+                </description>
+                <file>fx.js</file>
+                <code_snippet>
+                    class ExecutionContext {
+                        constructor() {
+                            this.taskQueue = [];
+                            this.isExecuting = false;
+                            this.sequences = new Map();
+                            this.cache = new Map();
+                        }
+
+                        async runAsync(fn, config) {
+                            // ... implementation ...
+                        }
+
+                        // ... other methods ...
+                    }
+                </code_snippet>
+            </feature>
+            <feature name="Basic Manifest Loading">
+                <description>
+                    Loads the initial manifest structure.
+                </description>
+                <file>fx.js</file>
+                <code_snippet>
+                    async loadManifest(manifestObj, prefix = '') {
+                        for (const [key, value] of Object.entries(manifestObj)) {
+                            const fullKey = prefix ? `${prefix}.${key}` : key;
+                            // ... implementation ...
+                        }
+                    }
+                </code_snippet>
+            </feature>
+        </completed_features>
+
+        <partially_completed_features>
+            <feature name="Dynamic Resource Loading">
+                <description>
+                    Basic implementation exists, but doesn't fully support lazy loading of manifest parts.
+                </description>
+                <file>fx.js</file>
+                <code_snippet>
+                    async createResource(config, fullKey) {
+                        return this.context.await(async () => {
+                            // ... current implementation ...
+                        });
+                    }
+                </code_snippet>
+                <todo>
+                    Implement lazy loading of manifest parts when accessed.
+                </todo>
+            </feature>
+
+            <feature name="Nested Property Access">
+                <description>
+                    Basic implementation exists, but doesn't fully support dynamic loading of nested resources.
+                </description>
+                <file>fx.js</file>
+                <code_snippet>
+                    handleGet(target, prop, path, receiver, config = {}) {
+                        const fullPath = [...path, prop].join('.');
+                        // ... current implementation ...
+                    }
+                </code_snippet>
+                <todo>Implement dynamic loading and caching of nested resources.</todo>
+            </feature>
+
+            <feature name="Configuration Options">
+                <description>
+                    Basic structure exists in the ExecutionContext, but not fully implemented.
+                </description>
+                <file>fx.js</file>
+                <code_snippet>
+                    async runAsync(fn, config) {
+                        const { sq, cache, retry, cb, sqcb } = config;
+                        // ... current implementation ...
+                    }
+                </code_snippet>
+                <todo>
+                    Implement full support for all configuration options (retry, cache, log, etc.).
+                </todo>
+            </feature>
+        </partially_completed_features>
+
+        <resource_status>
+            <client_resources>
+                <resource name="APIResource">
+                    <status>Implemented</status>
+                    <file class="APIResource">./fx/clientResources.js</file>
+                </resource>
+                <resource name="CSSResource">
+                    <status>Implemented</status>
+                    <file class="CSSResource">./fx/clientResources.js</file>
+                </resource>
+                <resource name="HTMLResource">
+                    <status>Implemented</status>
+                    <file class="HTMLResource">./fx/clientResources.js</file>
+                </resource>
+                <resource name="ModuleResource">
+                    <status>Implemented</status>
+                    <file class="ModuleResource">./fx/clientResources.js</file>
+                </resource>
+                <resource name="DataResource">
+                    <status>Implemented</status>
+                    <file class="DataResource">./fx/clientResources.js</file>
+                </resource>
+                <resource name="RawResource">
+                    <status>Implemented</status>
+                    <file class="RawResource">./fx/clientResources.js</file>
+                </resource>
+                <resource name="StaticResource">
+                    <status>Implemented (stub)</status>
+                    <file class="StaticResource">./fx/clientResources.js</file>
+                </resource>
+                <resource name="MarkdownResource">
+                    <status>Implemented (stub)</status>
+                    <file class="MarkdownResource">./fx/clientResources.js</file>
+                </resource>
+                <resource name="ImageResource">
+                    <status>Implemented</status>
+                    <file class="ImageResource">./fx/clientResources.js</file>
+                </resource>
+                <resource name="StreamResource">
+                    <status>Implemented (stub)</status>
+                    <file class="StreamResource">./fx/clientResources.js</file>
+                </resource>
+                <resource name="RouteResource">
+                    <status>Implemented (stub)</status>
+                    <file class="RouteResource">./fx/clientResources.js</file>
+                </resource>
+            </client_resources>
+
+            <server_resources>
+                <resource name="APIResource">
+                    <status>Implemented</status>
+                    <file class="APIResource">
+                        ./fx/SAPIResource.js
+                    </file>
+                </resource>
+                <resource name="CSSResource">
+                    <status>Implemented</status>
+                    <file class="CSSResource">
+                        ./fx/SCSSResource.js
+                    </file>
+                </resource>
+                <resource name="HTMLResource">
+                    <status>Implemented</status>
+                    <file class="HTMLResource">
+                        ./fx/SHTMLResource.js
+                    </file>
+                </resource>
+                <resource name="ModuleResource">
+                    <status>Implemented</status>
+                    <file class="ModuleResource">
+                        ./fx/SModuleResource.js
+                    </file>
+                </resource>
+                <resource name="StaticResource">
+                    <status>Implemented</status>
+                    <file class="StaticResource">
+                        ./fx/SStaticResource.js
+                    </file>
+                </resource>
+                <resource name="MarkdownResource">
+                    <status>Implemented</status>
+                    <file class="MarkdownResource">
+                        ./fx/SMarkdownResource.js
+                    </file>
+                </resource>
+                <resource name="ImageResource">
+                    <status>Implemented</status>
+                    <file class="ImageResource">
+                        ./fx/SImageResource.js
+                    </file>
+                </resource>
+                <resource name="StreamResource">
+                    <status>Implemented</status>
+                    <file class="StreamResource">
+                        ./fx/SStreamResource.js
+                    </file>
+                </resource>
+                <resource name="RouteResource">
+                    <status>Implemented</status>
+                    <file class="RouteResource">
+                        ./fx/SRouteResource.js
+                    </file>
+                </resource>
+            </server_resources>
+        </resource_status>
+        
+        <passing_tests>
+            <test name="FX instance should be a singleton">
+                <description>
+                    Ensures that multiple calls to FX.getInstance() return the same instance.
+                </description>
+            </test>
+            <test name="FX instance should be created">
+                <description>
+                    Verifies that an FX instance can be created successfully.
+                </description>
+            </test>
+            <test name="FX.set and FX.get work correctly for simple values">
+                <description>
+                    Tests the basic functionality of setting and getting simple values.
+                </description>
+            </test>
+            <test name="FX.set and FX.get work correctly for objects">
+                <description>
+                    Tests the functionality of setting and getting complex object values.
+                </description>
+            </test>
+            <test name="FX.data method works for both getting and setting">
+                <description>
+                    Verifies that the data method can both set and get values correctly.
+                </description>
+            </test>
+            <test name="FX handles nested property access and modification">
+                <description>
+                    Tests the ability to access and modify deeply nested properties.
+                </description>
+            </test>
+            <test name="Nested property access is fast for deep objects">
+                <description>
+                    Performance test for accessing deeply nested properties.
+                </description>
+            </test>
+        </passing_tests>
+    </current_state>
+
+    <features>
+        <feature name="Local/Session Storage Integration" status="Must Verify">
+            <description>Easy interaction with local and session storage.</description>
+            <proposed_implementation>Add methods to handle localStorage and sessionStorage access.</proposed_implementation>
+        </feature>
+
+        <feature name="IndexedDB Integration" status="Must Verify">
+            <description>
+                Seamless work with IndexedDB for client-side storage.</description>
+            <proposed_implementation>
+                Create a wrapper for IndexedDB operations.
+            </proposed_implementation>
+        </feature>
+
+        <feature name="CSS Loading and Management" status="Must Verify">
+            <description>
+                Dynamic loading and application of CSS.
+            </description>
+            <proposed_implementation>
+                Enhance the CSSResource class and integrate it fully with the resource factory.
+            </proposed_implementation>
+        </feature>
+
+        <feature name="HTML Template Handling" status="Must Verify">
+            <description>
+                Loading and using HTML templates.</description>
+            <proposed_implementation>
+                Enhance the HTMLResource class and integrate it fully with the resource factory.
+            </proposed_implementation>
+        </feature>
+
+        <feature name="JSON Data Loading" status="Must Verify">
+            <description>
+                Easy loading and use of JSON data.
+            </description>
+            <proposed_implementation>
+                Enhance the DataResource class for JSON handling and integrate it fully with the resource factory.
+            </proposed_implementation>
+        </feature>
+
+        <feature name="Raw File Loading" status="Must Verify">
+            <description>
+                Loading raw file contents.
+            </description>
+            <proposed_implementation>
+                Enhance the RawResource class and integrate it fully with the resource factory.
+            </proposed_implementation>
+        </feature>
+
+        <feature name="Environment Variable Access" status="Must Verify">
+            <description>
+                Easy access to environment variables.
+            </description>
+            <proposed_implementation>
+                Add a method to access environment variables, possibly using dotenv for Node.js environments.
+            </proposed_implementation>
+        </feature>
+
+        <feature name="Sequence Control" status="Must Verify">
+            <description>
+                Control the order of execution using sequence identifiers.
+            </description>
+            <proposed_implementation>
+                Enhance the ExecutionContext to handle sequence identifiers.
+            </proposed_implementation>
+        </feature>
+
+        <feature name="Automatic Retry" status="Must Verify">
+            <description>
+                Automatically retry failed operations.
+            </description>
+            <proposed_implementation>
+                Enhance the ExecutionContext to handle retry logic.
+            </proposed_implementation>
+        </feature>
+
+        <feature name="Caching" status="Must Verify">
+            <description>
+                Cache results for improved performance.
+            </description>
+            <proposed_implementation>
+                Implement a robust caching system in the ExecutionContext.
+            </proposed_implementation>
+        </feature>
+
+        <feature name="Logging" status="Must Verify">
+            <description>
+                Log operations for debugging purposes.
+            </description>
+            <proposed_implementation>
+                Implement a configurable logging system.
+            </proposed_implementation>
+        </feature>
+
+        <feature name="Callback Support" status="Must Verify">
+            <description>
+                Execute a callback function after an operation completes.
+            </description>
+            <proposed_implementation>
+                Enhance the ExecutionContext to handle callbacks.
+            </proposed_implementation>
+        </feature>
+
+        <feature name="Sequence Callback" status="Must Verify">
+            <description>
+                Trigger another sequence after the current one completes.
+            </description>
+            <proposed_implementation>
+                Enhance the ExecutionContext to handle sequence callbacks.
+            </proposed_implementation>
+        </feature>
+    </features>
+
+    <tasks>
+        <task name="Implement Lazy Loading of Manifest Parts">
+            <steps>
+                1. Update the `handleGet` method in fx.js to support lazy loading of manifest parts.
+                2. Implement a `loadManifestPart` method to dynamically import manifest parts.
+                3. Update the `createResource` method to work with lazy-loaded manifest parts.
+            </steps>
+        </task>
+
+        <task name="Enhance Nested Property Access">
+            <steps>
+                1. Modify the `handleGet` method to support deep nested property access.
+                2. Implement caching for nested property access to improve performance.
+            </steps>
+        </task>
+
+        <task name="Implement Configuration Options">
+            <steps>
+                1. Update the `runAsync` method in the ExecutionContext to fully support retry, cache, and log options.
+                2. Implement the caching system for the `cache` option.
+                3. Create a logging system for the `log` option.
+            </steps>
+        </task>
+
+        <task name="Enhance Resource Classes">
+            <steps>
+                1. Review and enhance CSSResource, HTMLResource, DataResource (for JSON), and RawResource classes.
+                2. Ensure full integration with the resource factory.
+                3. Implement any missing functionality in these resource classes.
+            </steps>
+        </task>
+
+        <task name="Implement Storage Integrations">
+            <steps>
+                1. Create methods for interacting with localStorage and sessionStorage.
+                2.  Implement a wrapper for IndexedDB operations.
+            </steps>
+        </task>
+
+        <task name="Add Environment Variable Access">
+            <steps>
+                1.  Implement a method to access environment variables.
+                2.  Use dotenv for Node.js environments if necessary.
+            </steps>
+        </task>
+
+        <task name="Enhance ExecutionContext">
+            <steps>
+                1.  Implement sequence control using the `sq` option.
+                2.  Add support for the `sqcb` (sequence callback) option.
+                3.  Implement the retry logic for the `retry` option.
+            </steps>
+        </task>
+
+        <task name="Update Server Integration">
+            <steps>
+                1.  Modify server.js to work with the enhanced FX framework.
+                2.  Ensure proper handling of lazy loading of manifest parts in the server environment.
+            </steps>
+        </task>
+
+        <task name="Expand Test Suite">
+            <steps>
+                1.  Create tests for all newly implemented features.
+                2.  Ensure full coverage of both client-side and server-side functionality.
+                3.  Add performance tests for critical operations.
+            </steps>
+        </task>
+    </tasks>
+
+    <applicable_files>
+        <file>fx.js</file>
+        <file>resources.js</file>
+        <file>server.js</file>
+        <file>manifest.js</file>
+        <file>./manifest/*.js</file>
+        <file>./modules/*.js</file>
+        <file>./clientResources/*.js</file>
+        <file>./serverResources/*.js</file>
+        <file>./test/fx.test.js</file>
+    </applicable_files>
+
+    <documentation>
+        <topic name="Index" path="./docs/index.md">
+            <implementation>
+                Not Applicable
+            </implementation>    
+        </topic>
+        <topic name="Core Concepts" path="./docs/core.md">
+            <implementation>
+                <file>fx.js</file>
+            </implementation>  
+        </topic>
+        <topic name="Manifest" path="./docs/manifest.md">
+            <implementation>
+                <file>fx.js</file>
+                <file>manifest.js</file>
+                <file>./manifest/assets.js</file>
+                <file>./manifest/config.js</file>
+                <file>./manifest/data.js</file>
+                <file>./manifest/db.js</file>
+                <file>./manifest/modules.js</file>
+                <file>./manifest/routes.js</file>
+                <file>./manifest/views.js</file>
+            </implementation>  
+        </topic>
+        <topic name="Dynamic Modules" path="./docs/dynamic-modules.md">
+            <implementation>
+                <file>fx.js</file>
+                <file>manifest.js</file>
+                <file>./manifest/modules.js</file>
+            </implementation>  
+        </topic>
+        <topic name="Dynamic Properties" path="./docs/dynamic-properties.md">
+            <implementation>
+                <file>fx.js</file>
+            </implementation>  
+        </topic>
+        <topic name="Storage Integration" path="./docs/storage-integration.md">
+            <implementation>
+                <file>fx.js</file>
+            </implementation>  
+        </topic>
+        <topic name="Resource Loading" path="pending">
+            <implementation>
+                <file>fx.js</file>
+                <file>./fx/resources.js</file>
+                <file>./fx/clientResources.js</file>
+                <file>./fx/serverResources.js</file>
+            </implementation>  
+        </topic>
+        <topic name="Resource Loading" path="pending">
+            <implementation>
+                <file>fx.js</file>
+                <file>./fx/resources.js</file>
+                <file>./fx/clientResources.js</file>
+                <file>./fx/serverResources.js</file>
+            </implementation>  
+        </topic>
+        <topic name="Asynchronous Operations" path="pending">
+            <implementation>
+                Pending
+            </implementation>
+        </topic>
+        <topic name="API Integration" path="pending">
+            <implementation>
+                Pending
+            </implementation>
+        </topic>
+        <topic name="Environment Variables" path="pending">
+            <implementation>
+                Pending
+            </implementation>
+        </topic>
+        <topic name="Component System" path="Testing">
+            <implementation>
+                Pending
+            </implementation>
+        </topic>
+        <topic name="Advanced Features" path="pending">
+            <implementation>
+                Pending
+            </implementation>
+        </topic>
+        <topic name="Best Practices and Tips" path="pending">
+            <implementation>
+                Pending
+            </implementation>
+        </topic>
+    </documentation>
+
+    <conclusion>
+        The FX framework has a solid foundation with its singleton pattern, proxy-based property access, and ExecutionContext for managing asynchronous operations. Many resource types are implemented, but some need enhancement. Significant work is needed to fully implement all planned features, particularly in areas of lazy loading, advanced resource management, and configuration options. The next steps involve expanding the framework's capabilities while ensuring it remains flexible and easy to use. Special attention should be given to maintaining the synchronous-like API for asynchronous operations and ensuring compatibility across different environments.
+    </conclusion>
+</prompt>

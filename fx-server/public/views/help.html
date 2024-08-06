@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FX Library Help</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal {
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        h1,
+        h2 {
+            color: #333;
+        }
+
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="overlay">
+        <div class="modal">
+            <span class="close-btn" onclick="closeHelp()">&times;</span>
+            <h1>FX Library Features</h1>
+
+            <h2>1. Dynamic Properties</h2>
+            <p>Set and get dynamic properties easily:</p>
+            <pre>
+                <code>
+                    // Setting properties
+                    fx.user.name = "Peter";
+                    fx.set("user.name", "Peter", "Default Value");
+                    fx.data("user.name", "Peter");
+
+                    // Getting properties
+                    const userName1 = fx.user.name;
+                    const userName2 = fx.get("user.name", "Default Value");
+                    const userName3 = fx.data("user.name");
+                </code>
+            </pre>
+
+            <h2>2. Local/Session Storage</h2>
+            <p>Easily interact with local and session storage:</p>
+            <pre>
+                <code>
+                    // Local storage
+                    fx.store.key = "Value";
+                    const localValue = fx.store.key;
+
+                    // Session storage
+                    fx.session.key = "Value";
+                    const sessionValue = fx.session.key;
+                </code>
+            </pre>
+
+            <h2>3. IndexedDB Integration</h2>
+            <p>Work with IndexedDB seamlessly:</p>
+            <pre>
+                <code>
+                    fx.db.users.add({id: 1, name: "Peter"});
+                    const user = fx.db.users.get(1);
+                </code>
+            </pre>
+
+            <h2>4. Instance from Module</h2>
+            <p>Load and use class instances from modules:</p>
+            <pre>
+                <code>
+                    // Manifest
+                    {
+                        user: {
+                            path: 'modules/user.js',
+                            type: 'instance',
+                            mainExport: 'User'
+                        }
+                    }
+
+                    // Usage
+                    fx.user.addUser("Peter Piper");
+                </code>
+            </pre>
+
+            <h2>5. Class from Module</h2>
+            <p>Load and use classes from modules:</p>
+            <pre>
+                <code>
+                    // Manifest
+                    {
+                        product: {
+                            path: 'modules/product.js',
+                            type: 'class',
+                            mainExport: 'Product'
+                        }
+                    }
+
+                    // Usage
+                    const product = new fx.product();
+                </code>
+            </pre>
+
+            <h2>6. Function from Module</h2>
+            <p>Load and use functions from modules:</p>
+            <pre>
+                <code>
+                    // Manifest
+                    {
+                        utils: {
+                            calc: {
+                                total: {
+                                    path: 'modules/utils.js',
+                                    type: 'function',
+                                    mainExport: 'calculateTotal'
+                                }
+                            }
+                        }
+                    }
+
+                    // Usage
+                    const total = fx.utils.calc.total(30, 5);
+                </code>
+            </pre>
+
+            <h2>7. Multiple Exports</h2>
+            <p>Work with modules that have multiple exports:</p>
+            <pre>
+                <code>// Manifest
+                {
+                    multipleExports: {
+                        path: 'modules/multipleExports.js',
+                        type: 'instance',
+                        mainExport: 'Order',
+                        additionalExports: {
+                            cancelOrder: 'cancelOrder'
+                        }
+                    }
+                }
+
+                // Usage
+                const order = fx.multipleExports;  // Instance of Order
+                order.placeOrder("Product A", 2);  // Method from main export
+                fx.multipleExports.cancelOrder("ORDER123");  // Additional export
+                </code>
+            </pre>
+
+            <h2>8. CSS Loading</h2>
+            <p>Load and apply CSS dynamically:</p>
+            <pre>
+                <code>
+                    // Manifest
+                    {
+                        styles: {
+                            main: {
+                                type: 'css',
+                                path: '/styles/main.css',
+                                scope: 'global',
+                                transformations: ['autoprefixer', 'minify']
+                            }
+                        }
+                    }
+
+                    // Usage
+                    console.log(fx.styles.main);
+                </code>
+            </pre>
+
+            <h2>9. HTML Templates</h2>
+            <p>Load and use HTML templates:</p>
+            <pre>
+                <code>
+                    // Manifest
+                    {
+                        templates: {
+                            user: {
+                                card: {
+                                    type: 'html',
+                                    path: '/templates/user-card.html'
+                                }
+                            }
+                        }
+                    }
+
+                    // Usage
+                    const userCardTemplate = fx.templates.user.card;
+                    const userCardHtml = userCardTemplate({name: "John Doe", email: "john@example.com"});
+                </code>
+            </pre>
+
+            <h2>10. JSON Data</h2>
+            <p>Load and use JSON data:</p>
+            <pre>
+                <code>
+                    // Manifest
+                    {
+                        data: {
+                            config: {
+                                type: 'json',
+                                path: '/data/config.json'
+                            }
+                        }
+                    }
+
+                    // Usage
+                    const config = fx.data.config;
+                    console.log(config.apiKey);
+                </code>
+            </pre>
+
+            <h2>11. Raw Files</h2>
+            <p>Load raw file contents:</p>
+            <pre>
+                <code>
+                    // Manifest
+                    {
+                        raw: {
+                            readme: {
+                                type: 'raw',
+                                path: '/README.md'
+                            }
+                        }
+                    }
+
+                    // Usage
+                    const readmeContent = fx.raw.readme;
+                    console.log(readmeContent);
+                </code>
+            </pre>
+
+            <h2>12. Sync-like API for Asynchronous Operations</h2>
+            <p>FX allows you to write asynchronous code in a synchronous style.</p>
+            <pre>
+                <code>
+                    const users = fx.api.users.get('/api/users');
+                    console.log(users);  // This works without await!
+                </code>
+            </pre>
+
+            <h2>13. Sequence Control</h2>
+            <p>Control the order of execution using sequence identifiers.</p>
+            <pre>
+                <code>
+                    fx(1).api.users.get('/api/users');
+                    fx(1).api.posts.get('/api/posts');  // This runs after the previous call
+                    fx(2).api.comments.get('/api/comments');  // This can run in parallel
+                </code>
+            </pre>
+
+            <h2>14. Automatic Retry</h2>
+            <p>Automatically retry failed operations.</p>
+            
+            <pre>
+                <code>
+                    fx({ retry: 3 }).api.users.get('/api/users');  // Will retry up to 3 times on failure
+                </code>
+            </pre>
+
+            <h2>15. Caching</h2>
+            <p>Cache results for improved performance.</p>
+            <pre>
+                <code>
+                    fx({ cache: 5000 }).api.users.get('/api/users');  // Cache result for 5 seconds
+                </code>
+            </pre>
+
+            <h2>16. Logging</h2>
+            <p>Log operations for debugging purposes.</p>
+            <pre>
+                <code>
+                    fx({ log: 3 }).api.users.get('/api/users');  // Log both call initiation and result
+                </code>
+            </pre>
+
+            <h2>17. Callback Support</h2>
+            <p>Execute a callback function after an operation completes.</p>
+            <pre>
+                <code>
+                    fx({ cb: (result) => console.log(result) }).api.users.get('/api/users');
+                </code>
+            </pre>
+
+            <h2>18. Sequence Callback</h2>
+            <p>Trigger another sequence after the current one completes.</p>
+            <pre>
+                <code>
+                    fx({ sq: 1, sqcb: 2 }).api.users.get('/api/users');
+                    fx({ sq: 2 }).api.posts.get('/api/posts');  // This will run after the users API call
+                </code>
+            </pre>
+
+            <h2>19. Resource Loading</h2>
+            <p>Load various types of resources easily.</p>
+            <pre>
+                <code>
+                    const template = fx.load({ type: "html", path: "/template.html" });
+                    const styles = fx.load({ type: "css", path: "/styles.css" });
+                    const config = fx.load({ type: "json", path: "/config.json" });
+                </code>
+            </pre>
+
+            <h2>20. IndexedDB Integration</h2>
+            <p>Seamlessly work with IndexedDB for client-side storage.</p>
+            <pre>
+                <code>
+                    fx.db.users.add({ name: "John Doe" });
+                    const user = fx.db.users.get(1);
+                </code>
+            </pre>
+
+            <h2>21. Environment Variable Access</h2>
+            <p>Access environment variables easily.</p>
+            <pre>
+                <code>
+                    const apiKey = fx.env.API_KEY;
+                </code>
+            </pre>
+
+            <h2>Unintentional Features</h2>
+
+            <h3>1. Proxy-based Property Creation</h3>
+            <p>Dynamically create properties that don't exist.</p>
+            <pre>
+                <code>
+                    fx.nonExistentApi.someMethod();  // This creates a new API endpoint on the fly
+                </code>
+            </pre>
+
+            <h3>2. Infinite Chaining</h3>
+            <p>Chain methods indefinitely without errors.</p>
+            <pre>
+                <code>
+                    fx.a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y.z();
+                </code>
+            </pre>
+
+            <h3>3. Mixed Sequence and Non-sequence Calls</h3>
+            <p>Mix sequenced and non-sequenced calls in unexpected ways.</p>
+            <pre>
+                <code>
+                    fx(1).api.users.get('/api/users');
+                    fx.api.posts.get('/api/posts');
+                    fx(1).api.comments.get('/api/comments');
+                </code>
+            </pre>
+
+            <h3>4. Recursive Configuration</h3>
+            <p>Apply configurations recursively.</p>
+            <pre>
+                <code>
+                    fx({ log: 3 }).fx({ retry: 2 }).fx({ cache: 5000 }).api.users.get('/api/users');
+                </code>
+            </pre>
+
+            <h3>5. Dynamic Resource Type Conversion</h3>
+            <p>Attempt to convert between resource types on the fly.</p>
+            <pre>
+                <code>
+                    const htmlAsJson = fx.load({ type: "json", path: "/template.html" });
+                </code>
+            </pre>
+
+            <p>Note: These unintentional features may not always work as expected and are not officially supported. Use them at your own risk!</p>
+        </div>
+    </div>
+
+    <script>
+        function closeHelp() {
+            document.querySelector('.overlay').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
