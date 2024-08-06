@@ -118,6 +118,8 @@ console.log(fx.data('closure')('John')); // Outputs: "Hello, John"
 // 6. Storing and accessing a string literal
 fx.set('greeting', 'Hello, world!');
 console.log(fx.data('greeting')); // Outputs: "Hello, world!"
+// Or
+console.log(fx.greeting); // Outputs: "Hello, world!"
 
 // 7. Storing and accessing a JSON object
 const user = { name: 'John', age: 30 };
